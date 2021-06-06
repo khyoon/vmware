@@ -1,0 +1,6 @@
+[book]
+authors = ["khyoon"]
+language = "ko"
+multilingual = false
+src = "src"
+title = "khyoon's VMware Note"
