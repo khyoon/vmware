@@ -4,7 +4,3 @@ language = "ko"
 multilingual = false
 src = "src"
 title = "khyoon's VMware Note"
-
-[output.html]
-
-[output.linkcheck]  # enable the "mdbook-linkcheck" renderer
