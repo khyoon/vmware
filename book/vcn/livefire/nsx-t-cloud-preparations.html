@@ -165,7 +165,145 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="nsx-t-cloud-preparations"><a class="header" href="#nsx-t-cloud-preparations">NSX-T Cloud Preparations</a></h1>
+                        <h1 id="32-nsx-t-cloud-preparations"><a class="header" href="#32-nsx-t-cloud-preparations">3.2 NSX-T Cloud Preparations</a></h1>
+<blockquote>
+<p>Before we can start with the configuration of the NSX-T Cloud, we have to prepare a few things:</p>
+<ul>
+<li>A Content Library in vSphere for the ALB to uploads the SE image</li>
+<li>Identify the logical segment for SE management traffic</li>
+<li>Optional but recommended: Configure ALB log forwarding</li>
+<li>Prepare credentials for the ALB to connect to vSphere and NSX-T Manager</li>
+</ul>
+</blockquote>
+<h2 id="1-content-library"><a class="header" href="#1-content-library">1. Content Library</a></h2>
+<p>Please login to vCenter Server using the credentials administrator@vsphere.local and the password VMware1!</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/376/original/93b1c25b-f80f-4e76-9741-85452cdcb10c.png" alt="" /></p>
+<ol>
+<li>In vCenter Server click <strong>Menu</strong></li>
+<li>click <strong>Content Libraries</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/574/original/cdb5c49f-566c-421c-917f-a94986b3edd4.png" alt="" /></p>
+<p>Click <strong>Create</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/428/075/original/c610ae2b-f6a8-47d9-861c-b303074c7602.png" alt="" /></p>
+<p>Enter the <strong>Name</strong>: NSX Advanced Loadbalancer</p>
+<p>Click <strong>NEXT</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/380/original/85c10be4-ea57-4026-b41b-f247cc07b0da.png" alt="" /></p>
+<ol>
+<li>Make sure <strong>Local content library</strong> is selected<br />
+<strong>Enable publishing</strong> is disabled</li>
+<li>Click <strong>NEXT</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/382/original/dbdff452-0bcc-4b03-b82d-d5fa5874205a.png" alt="" /></p>
+<ol>
+<li>On the storage configuration screen select <strong>nfs-01</strong></li>
+<li>Click <strong>NEXT</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/384/original/1b1e6247-791f-42d2-9155-3417b56e83a1.png" alt="" /></p>
+<p>Review the settings and click <strong>FINISH</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/386/medium/c41480bc-d713-4f10-8392-3250e7f6fb61.png" alt="" /></p>
+<p>The new content library should appear in the list now.</p>
+<h2 id="2-segment-for-se-management"><a class="header" href="#2-segment-for-se-management">2. Segment for SE Management</a></h2>
+<p>Next we have to select a logical segment for SE management traffic.</p>
+<p>Please login to NSX-T Manager using the credentials <strong>admin</strong> and the password <strong>VMware1!VMware1!</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/428/077/medium/0285b22a-6105-4c34-a890-40d6f3826d32.png" alt="" /></p>
+<ol>
+<li>In NSX-T Manager click <strong>Networking</strong></li>
+<li>Switch to <strong>Segments</strong></li>
+<li>Make sure you are on the <strong>SEGMENTS</strong> tab</li>
+<li>We will use the segment <strong>OV-LBMGMT</strong>
+<ul>
+<li>Please note the Subnet 172.16.100.1/24 and that we currently have 0 ports attached</li>
+</ul>
+</li>
+</ol>
+<h2 id="3-logging"><a class="header" href="#3-logging">3. Logging</a></h2>
+<p>Our customer has implemented vRealize Log Insight for central log collection. We now have to configure log forwarding in ALB.</p>
+<p>But first let's check if we have the AVI Networks Content Pack installed.</p>
+<h3 id="31-log-insight-content-pack"><a class="header" href="#31-log-insight-content-pack">3.1. Log Insight Content Pack</a></h3>
+<p>Please login to vRealize Log Insight using the credentials <strong>admin</strong> and the password <strong>VMware1!</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/582/medium/6a9dddf7-9c9f-4093-8586-dffaa5ebfe33.png" alt="" /></p>
+<p>Please click <strong>Content Packs</strong> in the top menu in the interface.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/584/medium/797b37b6-e36c-4fc5-95fc-437a4f6c604a.png" alt="" /></p>
+<p>You can see that the NSX Advanced Load Balancer Content Pack is already installed.</p>
+<p>To make sure we have all the latest versions of the Content Packs, we will check for any updates:</p>
+<h4 id="311-optional-check-for-updates"><a class="header" href="#311-optional-check-for-updates">3.1.1. Optional: Check for Updates</a></h4>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/586/medium/9cb43b69-122f-4c18-8ca9-53353dbb06cb.png" alt="" /></p>
+<p>Click Update in the navigation pane on the left. If there are any updates available they are listed here. Click UPDATE ALL if there are any updates available.</p>
+<h3 id="32-configure-log-forwarding"><a class="header" href="#32-configure-log-forwarding">3.2. Configure Log Forwarding</a></h3>
+<p>If you haven't logged in to NSX Advanced Load Balancer already:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/428/126/original/5e47e636-046f-46e1-beaf-add637c0e61c.png" alt="3. NSX Advanced Load Balancer | VCN Livefire 1.0 | TOC | NSX | ScreenSteps - Google Chrome" /></p>
+<ul>
+<li>Click the bookmark folder <strong>RegionA</strong> and select <strong>Avi Vantage Controller</strong></li>
+<li>Use the credentials: admin/VMware1!</li>
+</ul>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/909/medium/2a7650f4-1646-4ebb-9520-5253e9278b04.png" alt="" /></p>
+<p>We have seen that vRealize Log Insight was prepared. Now we have to configure the forwarding in ALB.</p>
+<ol>
+<li>From the system menu in the top left corner select <strong>Operations</strong></li>
+<li>Click <strong>Notifications</strong></li>
+<li>Switch to the <strong>Syslog</strong> tab</li>
+<li>Click <strong>CREATE</strong> on the right</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/911/medium/df6c95d6-89c1-4e90-9f25-d831900701ef.png" alt="" /></p>
+<ol>
+<li>Enter a name for this configuration: <strong>Log Insight</strong></li>
+<li>Enter the syslog server name: <strong>log-01a.corp.local</strong></li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/913/medium/e7225319-ed40-4663-9918-6c0e9af1f797.png" alt="" /></p>
+<p>Next we have to assign the logging profile to the Alert Actions. Still in the Operations section.</p>
+<ol>
+<li>Select <strong>Alerts</strong> and</li>
+<li>Switch to the <strong>Alert Actions</strong> tab</li>
+<li>Click the pencil icon for the first entry.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/915/medium/5587b834-18e5-4c7a-8cfc-1132f462bec6.png" alt="" /></p>
+<p>Select the entry you created above from the drop-down menu of the <strong>Syslog</strong> section..</p>
+<p>Click <strong>Save</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/595/medium/76c89a9f-bb5a-4c30-9a28-a17c5de4057a.png" alt="" /></p>
+<p>Repeat the steps above for the <strong>Alert Actions</strong> shown above. If your screen looks similar to the screenshot above your done.</p>
+<h2 id="4-user-credentials"><a class="header" href="#4-user-credentials">4. User Credentials</a></h2>
+<p>The last thing we need to prepare are the user credentials that the ALB Controller uses to login to vCenter Server and NSX-T Manager.</p>
+<blockquote>
+<p>For the sake of simplicity, we will simply use the admin accounts of vSphere and NSX-T manager. In a customer scenario you might want to create a custom role in vSphere to follow the principle of least privilege. For more information to setup a role with the appropriate permissions.</p>
+<p>In NSX-T you cannot create local users in the current version. You have to rely on external ID sources. If you do not have any configured you can use one of the gustusers in NSX-T or have to use the admin account. The role that you have to assign to a user is Network Engineer.</p>
+<p>For more information please check out:<br />
+<a href="https://avinetworks.com/docs/20.1/roles-and-permissions-for-vcenter-nsx-t-users/">https://avinetworks.com/docs/20.1/roles-and-permissions-for-vcenter-nsx-t-users/</a></p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/995/medium/974de091-4a06-493f-b381-b8b60f5b3917.png" alt="" /></p>
+<ol>
+<li>Select <strong>Administration</strong> from the system menu in the top left corner.</li>
+<li>Click <strong>User Credentials</strong></li>
+<li>Click <strong>CREATE</strong></li>
+</ol>
+<h3 id="41-nsx-t-credential"><a class="header" href="#41-nsx-t-credential">4.1. NSX-T Credential</a></h3>
+<p>First we will create a credential for NSX-T:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/997/original/90549560-d1af-4ccb-994d-fce19ec3ab89.png" alt="" /></p>
+<p>Please enter the following information:</p>
+<ol>
+<li>Name: <strong>NSX Admin</strong></li>
+<li>Credentials Type: <strong>NSX-T</strong></li>
+<li>Username: <strong>admin</strong></li>
+<li>Password: <strong>VMware1!VMware1!</strong></li>
+<li>Click <strong>SAVE</strong></li>
+</ol>
+<p>This will close the configuration dialogue and you will get back to the User Credentials screen.</p>
+<h3 id="42-vcenter-server-credential"><a class="header" href="#42-vcenter-server-credential">4.2. vCenter Server Credential</a></h3>
+<p>Click <strong>CREATE</strong> again to configure the vCenter credential:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/999/original/dd9a41c1-7262-4a7d-b844-16b98345221a.png" alt="" /></p>
+<p>Please enter the following information:</p>
+<ol>
+<li>Name: <strong>VC Admin</strong></li>
+<li>Credentials Type: <strong>vCenter</strong></li>
+<li>Username: <strong>administrator@vsphere.local</strong></li>
+<li>Password: <strong>VMware1!</strong></li>
+<li>Click <strong>SAVE</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/282/001/medium/3ff45315-e826-47ae-885e-0a11aa01f6be.png" alt="" /></p>
+<p>The two new credentials are now listed in the table.</p>
+<blockquote>
+<p>We are now ready to setup the NSX-T Cloud.</p>
+</blockquote>
 
                     </main>
 
@@ -204,21 +342,6 @@
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

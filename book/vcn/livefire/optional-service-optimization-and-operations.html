@@ -165,7 +165,649 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="optional-service-optimization-and-operations"><a class="header" href="#optional-service-optimization-and-operations">Optional: Service Optimization and Operations</a></h1>
+                        <h1 id="35-optional-service-optimization-and-operations"><a class="header" href="#35-optional-service-optimization-and-operations">3.5 Optional: Service Optimization and Operations</a></h1>
+<blockquote>
+<p>Welcome to the optional Optimization and Operations Lab.</p>
+<p>The intention of this lab is to give you more time to discover the features and options of the NSX Advanced Load Balancer. It is completely up to you to work through this lab guide - it does not affect any upcoming tasks. This guide is split into two main topics:</p>
+<ol>
+<li><strong>Service Customization:</strong> which includes tasks like
+<ul>
+<li>HTTPS Redirection</li>
+<li>VS Policies to manipulate requests</li>
+<li>Blocking IP addresses or specific browsers</li>
+</ul>
+</li>
+<li><strong>Operations:</strong> to discuss
+<ul>
+<li>VS Scaling and Migration</li>
+<li>Active Directory integration for authentication</li>
+<li>CLI</li>
+</ul>
+</li>
+</ol>
+<p>It will take a while to work through the whole guide! So if you are short on time, use this guide as a reference, the concepts and tasks highlighted here can be performed on any environment. We hope that the steps described below will help you with upcoming PoCs or installations. 
+Enjoy!  :-)</p>
+</blockquote>
+<blockquote>
+<p>We assume you are now familiar with the ALB interface. So to keep this (already long) lab guide short, we excluded some obvious steps in the manual. But we are convinced that you will find your way through...   :-)</p>
+</blockquote>
+<h2 id="1-service-customization"><a class="header" href="#1-service-customization">1. Service Customization</a></h2>
+<blockquote>
+<p>After we successfully replaced the existing LB solution, our customer asked for improvements around service access and security.</p>
+<p>In this chapter we will work through these customer requests.</p>
+</blockquote>
+<h3 id="11-http-to-https-redirect"><a class="header" href="#11-http-to-https-redirect">1.1. HTTP to HTTPS Redirect</a></h3>
+<p><strong>Customer Request:</strong> On some devices and with some older browsers users cannot access the WebApp because they just enter the address <code>webapp.corp.local</code>. We can replicate this behavior by entering <a href="http://webapp.corp.local/cgi-bin/app.py">http://webapp.corp.local/cgi-bin/app.py</a> into a incognito window in Chrome:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/431/original/8e82fd4f-246f-45e0-889e-2fa1c2bc2768.png" alt="" /></p>
+<p>As you can see in the screenshot above, we cannot access the WebApp because the App listens to HTTPS only.</p>
+<p><strong>Task</strong>: Make sure that all requests to this VS are redirected to HTTPS.</p>
+<h4 id="111-verify-application-profile"><a class="header" href="#111-verify-application-profile">1.1.1. Verify Application Profile</a></h4>
+<p>Part of the virtual service configuration was to select an Application Profile. For the WebApp we used: <strong>System-Secure-HTTP</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/433/medium/9766bd9d-46fc-4b4b-88ae-3942536a514a.png" alt="" /></p>
+<ol>
+<li>Click on the system menu in the top left corner and select <strong>Templates</strong></li>
+<li>Click <strong>Profiles</strong></li>
+<li>Make sure you are on the <strong>Application</strong> tab</li>
+<li>Locate the profile <strong>System-Secure-HTTP</strong> from the list and click the pencil icon on the right</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/435/medium/c0bd591b-76e1-41f6-96c5-835143de3c3c.png" alt="" /></p>
+<ol>
+<li>In the top menu click <strong>Security</strong></li>
+<li>We can see that this profile has <strong>HTTP-to-HTTP Redirect</strong> enabled by default</li>
+<li>Click <strong>Cancel</strong></li>
+</ol>
+<blockquote>
+<p>To learn more about Application Profiles see:<br />
+<a href="https://avinetworks.com/docs/20.1/architectural-overview/templates/profiles/application-profile/">https://avinetworks.com/docs/20.1/architectural-overview/templates/profiles/application-profile/</a></p>
+</blockquote>
+<h4 id="112-reconfigure-virtual-service"><a class="header" href="#112-reconfigure-virtual-service">1.1.2. Reconfigure Virtual Service</a></h4>
+<p>Our Application Profile is configured for HTTP-to-HTTPS redirect. So the only thing that we have to do is to add port 80 to the VS.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/437/medium/75fa4a74-4d66-4227-a0b9-cd37cc519c45.png" alt="" /></p>
+<ol>
+<li>Open the <strong>Applications</strong> context in the system menu.</li>
+<li>Select <strong>Virtual Services</strong></li>
+<li>As we can see the webapp.corp.local VS only listens to port 443</li>
+<li>Click the <strong>edit icon</strong> on the right.</li>
+</ol>
+<p>Note: Your Health score might be different.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/439/medium/d8b06984-c94d-49df-8dde-6f372ce08592.png" alt="" /></p>
+<p>Please scroll down until you get to the Service Port section.</p>
+<ol>
+<li>First you have to click <strong>Add Port</strong></li>
+<li>Enter port: <strong>80</strong></li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/441/original/f2512412-f419-4c6b-9e03-4b253276900a.png" alt="" /></p>
+<p>Port 80 was added successfully to the virtual service.</p>
+<h4 id="113-check-webapp-access-and-client-logs"><a class="header" href="#113-check-webapp-access-and-client-logs">1.1.3. Check WebApp Access and Client Logs</a></h4>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/119/026/original/52ee4a0a-8f68-4ee5-9bec-7b808c8ff6af.png" alt="" /></p>
+<p>Clicking <strong>Refresh</strong> in the incognito window of Chrome will now redirect us to the HTTPS port!</p>
+<p>Lets check out how this redirection was logged:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/119/028/original/e013db84-fd4c-45f9-941f-46f31c017391.png" alt="" /></p>
+<p>In the virtual service list click <strong>webapp.corp.local</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/443/medium/f037432e-9371-4f13-9800-620ca789a377.png" alt="" /></p>
+<p>In the virtual service screen</p>
+<ol>
+<li>Click <strong>Logs</strong></li>
+<li>Turn on <strong>Non-Significant Logs</strong></li>
+<li>Look for a response code <strong>3xx</strong></li>
+<li>and click the <strong>+ sign</strong> on the right to see all details of this request:</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/445/medium/c25af379-b2ed-4ace-8fd8-d2c22003e4e2.png" alt="" /></p>
+<p>For now we want to focus on:</p>
+<ol>
+<li>A request from the controlcenter IP to the virtual service port <strong>80</strong></li>
+<li>and the redirect to <strong>https</strong></li>
+</ol>
+<h3 id="114-information-only-redirection-via-policy"><a class="header" href="#114-information-only-redirection-via-policy">1.1.4. Information Only: Redirection via Policy</a></h3>
+<blockquote>
+<p>In our case the Application Profile contained a HTTP to HTTPS redirect instruction. If you are using a different Application Profile that does not support this feature and want to achieve the same result you can configure a HTTP Security or a HTTP Request rule like the one shown below.</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/447/medium/4118df1b-a968-4d60-bcf4-ff00a5176d9a.png" alt="" /></p>
+<p>Open the virtual service configuration screen as before.</p>
+<ol>
+<li>Switch to <strong>Policies</strong></li>
+<li>Click <strong>HTTP Security</strong></li>
+<li>Click the green plus sign to add a new rule</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/449/medium/60caa9cf-3893-43c8-bd1e-5e5fbb9c7fd2.png" alt="" /></p>
+<ol>
+<li>Provide a <strong>Name</strong></li>
+<li>Create a <strong>Matching Rule</strong> for Service Port is 80</li>
+<li>Set the <strong>Action</strong> to Redirect to HTTP and enter the target port.</li>
+<li>Click <strong>Cancel</strong> for now</li>
+</ol>
+<blockquote>
+<p>You can also configure a similar rule in the <strong>HTTP Request</strong> section with even more redirect options as well. Explore!</p>
+</blockquote>
+<h3 id="12-request-rewrite"><a class="header" href="#12-request-rewrite">1.2. Request Rewrite</a></h3>
+<p><strong>Customer Request:</strong> To access the WebApp users need to enter a quite long URI: <code>webapp.corp.local/cgi-bin/app.py</code> This caused some troubles in the past.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/802/original/1fb8911e-f573-4696-a6bc-f2261174333c.png" alt="" /></p>
+<p>As you can see in the screenshot above the URI is quite long.</p>
+<p><strong>Task</strong>: Provide a solution to allow users to get to the WebApp by  just entering: <code>webapp.corp.local</code></p>
+<h4 id="121-reconfigure-virtual-service"><a class="header" href="#121-reconfigure-virtual-service">1.2.1. Reconfigure Virtual Service</a></h4>
+<blockquote>
+<p>We will use a Request Rewrite Policy to solve the customer's request.</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/804/medium/2d139750-9604-4f28-9efb-79afc950d2f2.png" alt="" /></p>
+<ol>
+<li>Make sure you are in the <strong>Applications</strong> context.</li>
+<li>Click <strong>Virtual Services</strong></li>
+<li>Click the <strong>edit icon</strong> in the row of the webapp.corp.local service</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/806/medium/96402973-12d3-4a44-a8ef-360dde46e402.png" alt="" /></p>
+<ol>
+<li>Switch to the <strong>Policies</strong> screen</li>
+<li>Select <strong>HTTP Request</strong></li>
+<li>Click the green <strong>plus sign</strong> to add a new rule.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/808/medium/c2c854e5-6f74-42b6-8998-cb2007c33cfb.png" alt="" /></p>
+<ol>
+<li>Enter a rule name: <strong>AddFullPath</strong></li>
+<li>Please turn on logging</li>
+<li>In the Matching Rules section open the drop-down list and look for: <strong>Path</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/810/medium/30166d56-e2ce-49bf-a820-7e15c7231f02.png" alt="" /></p>
+<ol>
+<li>From the criteria menu select: <strong>Does not contain</strong></li>
+<li>In the String group or custom string menu look for <strong>Custom Value</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/812/medium/748c22f6-801f-4d6f-8031-d07fc725b2a6.png" alt="" /></p>
+<ol>
+<li>Enter the custom value: <strong>cgi-bin/app.py</strong></li>
+<li>Within the Action section select: <strong>Rewrite URL</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/814/medium/65756e6f-22c3-4fd5-b45c-5ece69a8d88d.png" alt="" /></p>
+<ol>
+<li>Enter in the Existing Path field: <strong>cgi-bin/app.py</strong></li>
+<li>Click <strong>Save Rule</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/816/medium/9527d58e-3165-4c4d-a368-d4c1951706fa.png" alt="" /></p>
+<p>Please verify the rule you entered. Click <strong>Save</strong></p>
+<h4 id="122-check-webapp"><a class="header" href="#122-check-webapp">1.2.2. Check WebApp</a></h4>
+<p>Lets see if your rule works...</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/818/original/87d50468-4cce-4b1c-8b03-62e40931f8d0.png" alt="" /></p>
+<p>Open a new tab in your browser and enter the (incomplete) URL: <code>webapp.corp.local</code> If you have configured everything correctly, you should get redirected...</p>
+<p>We activated logging for our rule - lets see what we can see in the logs:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/119/297/original/2ea48429-87d6-4b7b-a215-70c1498035f1.png" alt="" /></p>
+<p>Please navigate back to the Virtual Service overview and click the VS name: <strong>webapp.corp.local</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/821/medium/454be692-4ca6-4537-9f5d-5a16db05393d.png" alt="" /></p>
+<ol>
+<li>Switch to the <strong>Logs</strong> view</li>
+<li>Enable the <strong>Non-Significant Logs</strong></li>
+<li>Look for an entry pointing to &quot;/&quot; and expand the view by clicking on the + sign on the right side of the row. 
+(Note: if you do not see any entries, press the reload button next to the Search bar.)</li>
+<li>So lets see what we have: We can see the Client IP (controlcenter) connecting to the VS IP on port 443</li>
+<li>Server IP points to the server that processed the request: 172.16.10.12</li>
+<li>We can see the Rule that has been applied to this request.</li>
+<li>The requested URI is logged: /<br />
+as well as the Rewritten URI: /cgi-bin/app.py</li>
+</ol>
+<h3 id="13-blocking-bad-actors"><a class="header" href="#13-blocking-bad-actors">1.3. Blocking Bad Actors</a></h3>
+<p><strong>Customer Request:</strong> The customer want to block WebApp access for specific IPs or Ranges. 
+He asks to demonstrate this using the <strong>ubuntu-utils</strong> VM with the IP <strong>192.168.110.11</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/119/661/original/c6c1b544-dc50-4a57-8c3b-da01274ba6b5.png" alt="" /></p>
+<p>Open putty and connect to ubuntu-utils. Run the command: <code>curl -I webapp.corp.local</code> You should see a similar response as shown in the screenshot above.</p>
+<p><strong>Task</strong>: Block the IP 192.168.110.11 using NSX ALB.</p>
+<h4 id="131-reconfigure-virtual-service"><a class="header" href="#131-reconfigure-virtual-service">1.3.1. Reconfigure Virtual Service</a></h4>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/941/medium/4d37a8a4-9077-4b5b-bc46-ed26f5e5e6b2.png" alt="" /></p>
+<p>You already know how to edit a VS from the Virtual Service overview screen.</p>
+<p>An alternative way is to click the pencil icon in the VS view.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/287/943/medium/f1146aff-8a96-44f8-9504-f85003bcaa15.png" alt="" /></p>
+<p>You already have seen how to configure Policies, so to keep this guide short, we do not show all steps in detail.</p>
+<ol>
+<li>Switch to the <strong>Policies</strong> configuration screen</li>
+<li>This time we will create a <strong>Network Security</strong> rule. Not shown: click the <strong>green plus sign</strong> to add a new rule</li>
+<li>Enter a Name: <strong>Block Bad IPs</strong></li>
+<li>In the Matching Rules section select <strong>Client IP Address</strong> from the drop-down menu.</li>
+<li>Click the drop-down for the <strong>IP Address</strong> field and select <strong>Create</strong></li>
+</ol>
+<p>This will open the IP Group configuration screen:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/161/medium/55b8010f-f71c-4f4e-a03f-8426ecd18123.png" alt="" /></p>
+<ol>
+<li>Provide a IP Group Name: <strong>Denylist IPs</strong></li>
+<li>Enable <strong>Select by IP Address</strong></li>
+<li>Enter the IP: <strong>192.168.110.11</strong></li>
+<li>Click <strong>Add</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/163/medium/9aaf5e67-a281-4b08-90ee-ab7b56b2ba63.png" alt="" /></p>
+<p>The IP is added to the list. Click <strong>Save</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/165/medium/13698dbb-4906-46be-bd04-a543775e678a.png" alt="" /></p>
+<ol>
+<li>The IP List is added to the Matching Rule section</li>
+<li>In the Action section select <strong>Deny</strong></li>
+<li>Activate <strong>Logging</strong> for this Rule</li>
+<li>Click <strong>Save Rule</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/167/medium/0def960c-a760-4689-b1be-306dbd320db2.png" alt="" /></p>
+<p>Verify the rule configuration and click <strong>Save</strong>.</p>
+<h4 id="132-verify-setup"><a class="header" href="#132-verify-setup">1.3.2. Verify Setup</a></h4>
+<p>Re-open the putty session pointing to ubuntu-utils.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/119/676/original/cf91a304-e3fb-4002-a291-ae17979463b4.png" alt="" /></p>
+<p>Rerun the command that we entered before: <code>curl -I webapp.corp.local</code></p>
+<p>You should not get an answer. Press CTRL-C to stop the request.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/169/medium/a55e7455-41cd-449b-9f91-1ecc1ff8acd0.png" alt="" /></p>
+<p>Let check what we can see in the logs:</p>
+<ol>
+<li>Open <strong>Logs</strong> tab of the virtual service</li>
+<li>Enable <strong>Non-Significant Logs</strong></li>
+<li>Press <strong>Refresh</strong> to make sure you get the latest log messages from the SEs.</li>
+<li>Look for a request from the IP <strong>192.168.110.11</strong> and expand the entry by clicking the <strong>+</strong> sign on the right.</li>
+<li>It is logged that the IP belongs to the IP List/Location <strong>Denylist IPs</strong></li>
+<li>And the request hit the Network Security Rule: <strong>Block Bad IPs</strong></li>
+</ol>
+<h3 id="14-custom-health-check"><a class="header" href="#14-custom-health-check">1.4. Custom Health Check</a></h3>
+<p><strong>Customer Request:</strong> In the past user has been forwarded to back-end servers that lost the connectivity to the back-end. The previous LB solution just check for open ports but not for the accessibility of the WebApp.</p>
+<p><strong>Task:</strong> Create a more robust server health monitor that also check the server response.</p>
+<h4 id="141-reconfigure-server-pool"><a class="header" href="#141-reconfigure-server-pool">1.4.1. Reconfigure Server Pool</a></h4>
+<p>For the VS deployment we used the system provided System-HTTPS health monitor. Now we want to configure a health monitor optimized for the WebApp.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/424/medium/a42de24b-4e6e-479e-918c-eb36b4c227d6.png" alt="" /></p>
+<p>To change the health monitor, we have to re-configure the server pool:</p>
+<ol>
+<li>We can find the pool in the <strong>Application</strong> section.</li>
+<li>Click <strong>Pools</strong></li>
+<li>Click the edit icon for the <strong>webapp.corp.local-pool</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/426/medium/bec96afd-dd91-4bf5-ac4c-98fd699e7296.png" alt="" /></p>
+<ol>
+<li>Click the drop-down menu</li>
+<li>Select <strong>Create Health Monitor</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/428/medium/c9ad0e49-df47-41c3-89bc-b4242e79141d.png" alt="" /></p>
+<ol>
+<li>Enter a name: <strong>WebApp</strong></li>
+<li>Set Type to: <strong>HTTPS</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/428/282/medium/131b0ef4-5414-4339-82a5-98e95b44886e.png" alt="" /></p>
+<p>Scroll down to the <strong>Client Request Header</strong> and enter:<br />
+<code>GET /cgi-bin/app.py HTTP/1.0</code></p>
+<p>Make sure you enter the string exactly as shown!</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/428/284/medium/377d2495-69c0-42ab-81a2-5911623c1619.png" alt="" /></p>
+<p>Scroll further down the page.</p>
+<ol>
+<li>In the Server Response Data field enter:<br />
+<code>Customer Database</code></li>
+<li>From the drop-down add <strong>2XX</strong> and <strong>3XX</strong> to the Response Code.</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<p>Make sure you enter the string exactly as shown!</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/432/medium/bba4e852-7abc-4789-aabb-b9501179a172.png" alt="" /></p>
+<p>Back on the pool configuration page.</p>
+<ol>
+<li>Make sure the new <strong>WebApp</strong> health monitor is activated</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h4 id="142-verify-setup"><a class="header" href="#142-verify-setup">1.4.2. Verify Setup</a></h4>
+<p>Lets see if our pool is still &quot;up&quot;...</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/434/medium/1c36c4d0-38e2-46f1-a90e-7b3af5e29584.png" alt="" /></p>
+<ol>
+<li>Make sure you are on <strong>Pools</strong> page.</li>
+<li>Click the <strong>webapp.corp.local-pool</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/436/medium/f490db23-10a8-4417-b97e-53b1198830b4.png" alt="" /></p>
+<ol>
+<li>Navigate to the <strong>Servers</strong> view.</li>
+<li>Click on of the <strong>Server Names</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/541/medium/e7d37224-a9c6-41d3-ac23-e6531f3f9ee9.png" alt="" /></p>
+<ol>
+<li>Expand the view of the active health monitor.</li>
+<li>You can see we now have app specific Request String and  evaluate the server Response.</li>
+</ol>
+<h3 id="15-block-unmanaged-browsers"><a class="header" href="#15-block-unmanaged-browsers">1.5. Block Unmanaged Browsers</a></h3>
+<p><strong>Customer Request:</strong> The customers security policy define Google Chrome and MS Edge as secure as they are managed and updated by group policies.</p>
+<p><strong>Task</strong>: Block unmanaged browsers like Firefox.</p>
+<h4 id="151-reconfigure-virtual-service"><a class="header" href="#151-reconfigure-virtual-service">1.5.1. Reconfigure Virtual Service</a></h4>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/543/medium/fd9b0b39-58b1-4713-8e55-8e9f1ae068ea.png" alt="" /></p>
+<ol>
+<li>Make sure you are in the <strong>Applications</strong> context.</li>
+<li>Click <strong>Virtual Services</strong></li>
+<li>Click the <strong>edit icon</strong> in the row of the webapp.corp.local service</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/545/medium/611c3086-97c1-41c3-a244-afbc6f3702d7.png" alt="" /></p>
+<ol>
+<li>Navigate to the <strong>Policies</strong> page.</li>
+<li>Select <strong>HTTP Request</strong></li>
+<li>Click the <strong>green plus</strong> sign to add a new rule</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/350/908/medium/caf0a72f-42dd-4f38-998d-d0fac396976c.png" alt="" /></p>
+<p>Please configure the rule as follows:</p>
+<ol>
+<li>Name: <strong>Block Unmanaged Browser</strong></li>
+<li>Enable Logging</li>
+<li>In the Matching Rule section choose <strong>Header</strong> from the drop-down menu</li>
+<li>Set criteria to: <strong>Contains</strong></li>
+<li>Name: <strong>User-Agent</strong></li>
+<li>Value: <strong>Firefox</strong></li>
+<li>In the Action section, choose <strong>Content Switch</strong> from the drop-down menu</li>
+<li>Enable <strong>Local Response</strong> and set the Status Code to <strong>403</strong></li>
+<li>Click <strong>Save Rule</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/549/medium/1496843a-5f6a-401a-84b6-6c4b12a4c1c5.png" alt="" /></p>
+<ol>
+<li>Optional: Drag-drop the &quot;Block Unmanaged Browser&quot; rule to be processed first. So the browsers are blocked immediately.</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h4 id="152-verify-setup"><a class="header" href="#152-verify-setup">1.5.2. Verify Setup</a></h4>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/551/medium/279988d1-6a50-4d27-85f1-d0731b9777bc.png" alt="" /></p>
+<p>Open Firefox from the Windows taskbar and enter <code>webapp.corp.local</code> Firefox was successfully blocked.</p>
+<p>Lets see what we can see in the Logs:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/779/medium/4d08e180-14e1-494c-a917-51012a39ef5e.png" alt="" /></p>
+<p>We are pretty sure that you know by now how to get to the Logs of the Virtual Service...   :-)</p>
+<ol>
+<li>Please press <strong>Refresh</strong> to make sure you get the latest logs from the SEs.</li>
+<li>Note: You do not need to enable Non-Significant Logs, because Response Codes of 4xx are considered as significant.</li>
+<li>Look for an entry with the response code <strong>403</strong></li>
+<li>Like before we can identify the Rule that processed this request.</li>
+<li>Here we see the entry that we were looking for in our rule.</li>
+</ol>
+<h2 id="2-operations"><a class="header" href="#2-operations">2. Operations</a></h2>
+<blockquote>
+<p>We successfully optimized the Virtual Service.</p>
+<p>Now it is time to take a look on some operational tasks.</p>
+</blockquote>
+<h3 id="21-service-scaling-and-migration"><a class="header" href="#21-service-scaling-and-migration">2.1. Service Scaling and Migration</a></h3>
+<p><strong>Customer Request:</strong> Increase throughput and decrease fail-over time by scaling out the VS to a second SE.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/093/medium/35669d1e-e0a1-4223-8a66-16cce05d6e30.png" alt="" /></p>
+<p>Please open the <strong>webapp.corp.local</strong> virtual service.</p>
+<p>Place your mouse over the virtual service name and the details page you can see in the screenshot above will appear.</p>
+<p>First notice the SE the service is currently hosted on. 
+Note: your SE name might be a little different.</p>
+<p>Click <strong>Scale Out</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/095/original/573e06f7-a8de-4dc9-b329-806691fbd5d6.png" alt="" /></p>
+<ol>
+<li>Select the second SE from the drop-down.</li>
+<li>Click <strong>Scale out</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/097/original/a27c7e94-299f-424a-b9f6-0a3bd5d55447.png" alt="" /></p>
+<p>A pop-up windows will indicate the scale-out progress which should disappear after while.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/099/original/1191aecd-f3e2-4208-bdd3-2c30c8236eb1.png" alt="" /></p>
+<p>Place your mouse over the virtual service name again. We can see the VS is now running on both SEs.</p>
+<h4 id="211-changes-in-nsx-t"><a class="header" href="#211-changes-in-nsx-t">2.1.1. Changes in NSX-T</a></h4>
+<p>Did the scale-out operation triggered any changes in NSX-T? Well lets find out!</p>
+<p>Do you remember the step in the previous guide, when we verified the static route on the T1 with one next hop configured (step 2.5.4)?</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/101/medium/55472cd1-7305-4512-8327-d45dcd42d780.png" alt="" /></p>
+<p>Please open the management UI of NSX-T.</p>
+<ol>
+<li>Click <strong>Networking</strong> in top menu.</li>
+<li>Select <strong>Tier-1 Gateways</strong></li>
+<li>Expand the details view for the <strong>T1-GATEWAY</strong></li>
+<li>Expand <strong>STATIC ROUTES</strong> and click the &quot;<strong>1</strong>&quot; in the section</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/103/original/5ccdbddd-5fd5-4aea-8203-89a75491b20a.png" alt="" /></p>
+<ol>
+<li>We can see the virtual IP of the virtual service</li>
+<li>But now have two next hops configured. Please click the &quot;<strong>2</strong>&quot;</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/105/original/9fde709b-ad70-4b0b-ad34-7ac7876ce935.png" alt="" /></p>
+<p>The scale-out operation in ALB added a second static route with the same administrative distance to the gateway.</p>
+<p>When a virtual service is scaled out, the ALB controller adds equal cost next hops pointing to each SE where the the virtual service is placed. The tier-1 spreads out the incoming connections over the SEs, using Equal Cost Multi-Pathing (ECMP). </p>
+<p>Click <strong>CLOSE</strong> here and on the Static Route window.</p>
+<h4 id="212-scale-in-service"><a class="header" href="#212-scale-in-service">2.1.2. Scale-In Service</a></h4>
+<p>We have demonstrated how easy it is to scale-out a virtual service. In our lab environment it is beneficial when we scale-in again:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/107/original/379ef5f9-044d-4341-bb3f-49f7eccae7b2.png" alt="" /></p>
+<ol>
+<li>Place your mouse over the VS name again.</li>
+<li>Click <strong>Scale In</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/109/original/516d457c-ab21-44a0-8203-c9a646a2f267.png" alt="" /></p>
+<ol>
+<li>Select the SE marked as **Primary<br />
+**Note: Your SE names might be different.</li>
+<li>Press <strong>Scale In</strong></li>
+</ol>
+<blockquote>
+<p>We are sure you already noticed but to migrate a VS from one SE to another follows the same procedure. Just click Migrate in the VS details window.</p>
+</blockquote>
+<h3 id="22-nsx-advanced-load-balancer-cli"><a class="header" href="#22-nsx-advanced-load-balancer-cli">2.2. NSX Advanced Load Balancer CLI</a></h3>
+<p>In this section we want to provide just one or two tips how to use the CLI.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/209/medium/5d933ba5-034f-4ef1-b725-39d6f05352ee.png" alt="" /></p>
+<p>Please open putty and start the pre-configured session: <strong>avi-01a</strong></p>
+<ul>
+<li>Please login as: <strong>admin</strong></li>
+<li>Passoword: <strong>VMware1!</strong></li>
+</ul>
+<p>This will bring you to bash shell of the controller.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/211/medium/fb4cb70f-76de-4cf6-b6df-86083de2855d.png" alt="" /></p>
+<ol>
+<li>To start the AVI shell, enter: shell</li>
+<li>You have to provide the admin credentials once again: <strong>admin</strong>/<strong>VMware1!</strong></li>
+</ol>
+<p>Now you can run controller commands like:</p>
+<ul>
+<li><code>show cloud</code></li>
+<li><code>show cloud nsxmgr-01a analysis</code></li>
+</ul>
+<blockquote>
+<p>To see all available commands, enter: <code>help</code></p>
+<p>Another way to get information about available arguments, enter the command and press <tab> twice: <code>show &lt;tab&gt;&lt;tab&gt;</code></p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/213/medium/88aab0dc-334e-45f5-a234-57b43ef5816a.png" alt="" /></p>
+<p> A good use-case for the CLI is to check the CPU load of our service engines.</p>
+<p>When you check the CPU utilization reported by vCenter Server you might be surprised that it is quite high - even there is NO virtual service running on the SE. The reason for this behavior is explained here:<br />
+<a href="https://avinetworks.com/docs/20.1/faq-hypervisor-reports-high-cpu-utilization-of-service-engine/">https://avinetworks.com/docs/20.1/faq-hypervisor-reports-high-cpu-utilization-of-service-engine/</a></p>
+<p>So we can use the CLI to get a comprehensive CPU utilization report:</p>
+<ul>
+<li>First we want to get a list of our SEs: <code>show serviceengine</code></li>
+<li>The CPU report can be viewed by: <code>show serviceengine &lt;SEName&gt; cpu</code></li>
+</ul>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/546/medium/7fd39fe8-b73d-4cee-8628-53fd01bcc816.png" alt="" /></p>
+<p>Above an example to get configuration information about a virtual service:</p>
+<ul>
+<li><code>show virtualservice</code></li>
+<li><code>show virtualservice &lt;VSName&gt;</code></li>
+</ul>
+<blockquote>
+<p>But the CLI can also help with API calls:</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/548/medium/b63f2b94-4253-42a8-a3c5-43d592b40baa.png" alt="" /></p>
+<p>The command: <code>show virtualservice --api-detail</code> Will not only provide the desired information, but also the API. Note: to preserve readability we truncated the output!</p>
+<blockquote>
+<p>The command: <code>terminal display_api_details</code></p>
+<p>Makes the output shown above the default. So all commands you enter will also return the API call.</p>
+</blockquote>
+<h3 id="23-active-directory-authentication-and-rbac"><a class="header" href="#23-active-directory-authentication-and-rbac">2.3. Active Directory Authentication and RBAC</a></h3>
+<p><strong>Customer Request:</strong> NSX Advanced Load Balancer must be integrated with the company's Active Director for user authentication.</p>
+<p><strong>Task:</strong> Connect the ALB to the CORP.LOCAL domain. And assign the role <strong>Application-Operator</strong> to the AD-group <strong>IT</strong>.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/781/medium/229be99d-b623-4fb2-b743-aa5f203a4b58.png" alt="" /></p>
+<p>First we need to create an Authentication Profile.</p>
+<ol>
+<li>Select <strong>Templates</strong> from the system menu in the top left corner.</li>
+<li>Click <strong>Security</strong></li>
+<li>Select <strong>Auth Profile</strong></li>
+<li>Click <strong>CREATE</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/783/medium/6d791d21-97e7-4ddf-8db9-488c35df2ff1.png" alt="" /></p>
+<p>OK... there is a lot to enter. Please use copy/past to avoid any typos:</p>
+<ul>
+<li>Name: <strong>CORP.LOCAL</strong></li>
+<li>Set Type: <strong>LDAP</strong></li>
+<li>LDAP Servers: **controlcenter.corp.local<br />
+**Note: In a production environment you can add several LDAP servers.</li>
+<li>Base DN: <strong>DC=corp,DC=local</strong></li>
+<li>Admin Bind DN: <strong>CN=Administrator,CN=Users,DC=corp,DC=local</strong></li>
+<li>Admin Bind Password: <strong>VMware1!</strong></li>
+<li>User Search DN: <strong>CN=Users,DC=corp,DC=local</strong></li>
+<li>Group Search DN: <strong>CN=Users,DC=corp,DC=local</strong></li>
+<li>User ID Attribute: <strong>samAccountName</strong></li>
+<li>Group Filter: <strong>(objectCategory=group)</strong></li>
+</ul>
+<p>Click <strong>Save</strong></p>
+<p>Next we have to activate the new Authentication Profile:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/785/medium/1ed5e3de-4a5b-4761-ab1c-6a282be16976.png" alt="" /></p>
+<ol>
+<li>Switch to <strong>Administration</strong></li>
+<li>Click <strong>Settings</strong></li>
+<li>Make sure you are viewing the <strong>Authentication/Authorization</strong> tab</li>
+<li>Click the <strong>edit</strong> icon</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/787/original/6cae2926-4956-4419-8659-f742279ec5a3.png" alt="" /></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/787/original/6cae2926-4956-4419-8659-f742279ec5a3.png" alt="" /></p>
+<ol>
+<li>Activate <strong>Remote</strong> Authentication</li>
+<li>Select the <strong>CORP.LOCAL</strong> Auth Profile</li>
+<li>Make sure you keep <strong>Allow local user login</strong> enabled</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/789/medium/31d08aca-cabf-4b71-9e13-c99935aff29b.png" alt="" /></p>
+<ol>
+<li>The authentication type and profile is now shown in the UI</li>
+<li>Click <strong>New Mapping</strong> to add a role to an AD Group</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/791/original/33080dfa-a912-45fa-a79d-6837a8446767.png" alt="" /></p>
+<ol>
+<li>Select <strong>Member</strong></li>
+<li>Add the group name: <strong>IT</strong></li>
+<li>User Role: <strong>Selected</strong></li>
+<li>Assign the role: <strong>Application-Operator</strong></li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/793/medium/53eb2ce0-2b74-4719-84fd-b33a5c892fd8.png" alt="" /></p>
+<p>The new Role Mapping is show in the UI.</p>
+<h4 id="231-test-ad-login"><a class="header" href="#231-test-ad-login">2.3.1. Test AD-Login</a></h4>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/795/original/35831931-a895-47c7-8328-ded21d358324.png" alt="" /></p>
+<p>Sign Out from your System Administrator account.</p>
+<ol>
+<li>Click the <strong>AVI Networks icon</strong> in the top right corner</li>
+<li>Click <strong>Sign Out</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/134/925/original/353891e1-77d8-43c7-be6e-4dfa6c885808.png" alt="" /></p>
+<p>Now lets login with the user account olive - which is a member of the IT group:</p>
+<ul>
+<li>Username: <strong>olive</strong></li>
+<li>Password: <strong>VMware1!</strong></li>
+<li>Click <strong>LOG IN</strong></li>
+</ul>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/288/797/medium/d4dded5c-853a-40e4-a965-5414c8ccd127.png" alt="" /></p>
+<p>As Application-Operator you do not have access to the System menu:</p>
+<ol>
+<li>Select <strong>Administration</strong> from the system menu.</li>
+<li>You will not have access to the <strong>System</strong> view.</li>
+<li>Clicking on the AVI Networks icon will reveal the user name.</li>
+<li>Do you know why you see &quot;admin&quot; in the menu bar?<br />
+Hint: this has to do with Tenants....</li>
+</ol>
+<blockquote>
+<p>Please login with the admin account again to proceed with the tasks.</p>
+</blockquote>
+<h3 id="24-remote-backup"><a class="header" href="#24-remote-backup">2.4. Remote Backup</a></h3>
+<p>For production environments its is essential to have a backup of your management tools. So lets explore how to configure this with the ALB.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/550/original/588affc8-a1b3-420b-afc6-7498de30a359.png" alt="" /></p>
+<p>For our demonstration we will use the ubuntu-utils virtual machine. Please use putty and the pre-configured session to connect to it.</p>
+<ul>
+<li>Login using livefire/VMware1!</li>
+<li>Create a folder to store your backups to: <code>mkdir avi-01a.backup</code></li>
+</ul>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/552/medium/d883dad2-03f6-4eb8-8b41-0e0c65b9f04d.png" alt="" /></p>
+<p>Please switch back to the management UI of the ALB controller.</p>
+<ol>
+<li>Go to <strong>Administration</strong></li>
+<li>Click <strong>System</strong></li>
+<li>You should be on the <strong>Configuration Backup</strong> tab</li>
+<li>Click the edit icon</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/554/original/7528dcd8-2d34-447c-855a-cb2ca2d67a41.png" alt="" /></p>
+<ol>
+<li>Enable: <strong>Remote Server</strong></li>
+<li>Server Address: <strong>192.168.110.11</strong></li>
+<li>Directory: <code>/home/livefire/avi-01a.backup</code></li>
+<li>Open the drop-down of User Credentials and click <strong>Create SSH User</strong> (not shown)</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/556/original/96df3fd5-abbc-42ab-8671-da525cedbcaf.png" alt="" /></p>
+<p>Enter the following information:</p>
+<ul>
+<li>Name: <strong>livefire</strong></li>
+<li>Credential Type: <strong>SSH</strong></li>
+<li>Authentication: <strong>Password</strong></li>
+<li>Password: <strong>VMware1!</strong></li>
+</ul>
+<p>Click <strong>Save</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/558/original/c5786cfc-2ab5-4e91-a632-af9ef5e2522e.png" alt="" /></p>
+<p>Finish the configuration by clicking <strong>Save</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/560/medium/17a5b4dc-ad68-43fa-bd42-728640cf820b.png" alt="" /></p>
+<p>Remote Backup is now Enabled.</p>
+<p>As we kept the backup cycle in our lab environment at 1 day, you can check the content of the backup folder tomorrow.  :-)</p>
+<h3 id="25-information-only-update-procedure"><a class="header" href="#25-information-only-update-procedure">2.5. Information only: Update Procedure</a></h3>
+<blockquote>
+<p>Performing an update is a task that every administrator has to perform sooner or later. To make you familiar with this process we included this information only section.</p>
+<p>In this example we update from 20.1.3 to 20.1.4.</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/564/medium/b1182d73-fb7a-403c-9608-4058a2301186.png" alt="" /></p>
+<p>First we need to upload the update package to our controller:</p>
+<ol>
+<li>Go to <strong>Administration</strong></li>
+<li>Click <strong>Controller</strong></li>
+<li>Select the <strong>Software</strong> tab</li>
+<li>Click <strong>Upload From Computer</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/570/medium/535ced8f-bdd2-4328-8457-0057812ac988.png" alt="" /></p>
+<ol>
+<li>Navigate to the downloaded update package.</li>
+<li>Click <strong>Open</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/152/320/medium/dd39e7b6-5ffd-4004-b316-dd247c0d04ce.png" alt="" /></p>
+<p>The upload progress is indicated in the UI.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/574/medium/48e83d56-587a-46a2-8785-5ed1fc7f2d4d.png" alt="" /></p>
+<p>After a few minutes the update is completed and the new version is listed on your controller.</p>
+<h4 id="251-controller-update"><a class="header" href="#251-controller-update">2.5.1. Controller Update</a></h4>
+<p>The first component we want to update is the controller itself.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/577/medium/29fb6bf6-5c22-4729-a13f-9b4a3e9ea709.png" alt="" /></p>
+<ol>
+<li>Navigate to the <strong>System Update</strong> tab.</li>
+<li>Mark the new software package.</li>
+<li>Click <strong>UPGRADE</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/579/original/0f432679-e23b-4ac0-93e7-32f9fbe6e39b.png" alt="" /></p>
+<ul>
+<li>For now we want to update the controller only. Deactivate <strong>Upgrade all Service Engine Groups</strong>.</li>
+<li>Click <strong>Continue</strong></li>
+</ul>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/581/original/ccc6a11f-15b5-4095-9d65-94d994855b72.png" alt="" /></p>
+<p>We have just configured a remote backup in the task before - so we are ready to go! Click <strong>Confirm</strong>.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/583/medium/72b9252d-7751-4b00-a4bc-f5fb41f0ac5f.png" alt="" /></p>
+<p>Update is in progress...</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/152/332/original/eb171c6a-60f7-479c-9eec-06d8370f11f3.png" alt="" /></p>
+<p>You will sooner or later loose connectivity to the management UI. That is normal!</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/152/334/medium/e3cca6f0-daa3-4736-b372-c51f923510c5.png" alt="" /></p>
+<p>After a few minutes you will presented with the login screen again.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/152/336/medium/5a3c456e-5315-4305-bea0-e6f32877fe1a.png" alt="" /></p>
+<p>The update process is still in progress. Patience!</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/585/medium/cb805cb9-c614-4f8f-a856-1aa314b4f6e5.png" alt="" /></p>
+<p>After a few more minutes the controller update is completed. And the new version is shown in the UI.</p>
+<h4 id="252-security-engine-group-update"><a class="header" href="#252-security-engine-group-update">2.5.2. Security Engine Group Update</a></h4>
+<p>Next we want to update the Service Engine Groups.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/587/medium/15c87575-663f-4e18-9e12-530ec7730175.png" alt="" /></p>
+<ol>
+<li>Switch to the <strong>SEG Update</strong> tab</li>
+<li>Select the SEG you want to update. You can see the SEG name and also the Cloud it belongs to.</li>
+<li>Click <strong>Upgrade</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/589/original/7cf2b958-6bae-47ec-8112-d06e83408d08.png" alt="" /></p>
+<p>Click <strong>Next</strong>.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/591/original/8f3e71e6-19e8-4b50-898f-a8491b876339.png" alt="" /></p>
+<ul>
+<li>To <strong>Suspend</strong> the update process if there are any errors is a good idea.</li>
+<li>Click <strong>Continue</strong></li>
+</ul>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/593/original/21ca16e4-a6a6-4861-942e-d096dec8f099.png" alt="" /></p>
+<ol>
+<li>Please note the first warning: Remember, our VS is running on one SE only...!</li>
+<li>Press <strong>Confirm</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/595/medium/e1b28820-51eb-443e-91a1-1cc1befd302e.png" alt="" /></p>
+<p>Update in progress...</p>
+<blockquote>
+<p>Remember how ALB manages the images for the SEs? It is using a Content Library!</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/152/350/medium/e6a470e8-e6f2-44df-90be-f5804fe122b0.png" alt="" /></p>
+<p>So, the first task for the SE update is to first delete the old SE image and upload a new one.</p>
+<p>And then it will update the existing SEs.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/291/597/medium/e080717a-b6f6-4531-b5ab-0d8023418028.png" alt="" /></p>
+<p>After a few minutes the SEG update process is finished.</p>
+<blockquote>
+<p>Congratulations! You finished the Service Optimization and Operations lab.</p>
+<p>We hope, you enjoyed it or at least found some useful information. Now its time for a break!</p>
+</blockquote>
 
                     </main>
 
@@ -204,21 +846,6 @@
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

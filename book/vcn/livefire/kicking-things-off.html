@@ -165,22 +165,21 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h2 id="01-kicking-things-off"><a class="header" href="#01-kicking-things-off">0.1 Kicking Things Off!</a></h2>
+                        <h1 id="01-kicking-things-off"><a class="header" href="#01-kicking-things-off">0.1 Kicking Things Off!</a></h1>
 <p>In this section we will walk you through how you access the lab and verify the working of the infrastructure components. It is recommended to have Horizon Client installed on your Mac or PC, but it is also possible to use the Horizon web interface. You will use the VDI Desktop as a jump host to RDP to the Main Console inside your dedicated lab environment.</p>
 <p>The instructor will provide the Horizon credentials and the lab RDP IP via Slack.</p>
 <h2 id="1-download-and-install-the-horizon-client"><a class="header" href="#1-download-and-install-the-horizon-client">1. Download and install the Horizon Client</a></h2>
-<hr />
-<p><a href="https://nsx-labs.livefire.solutions/m/102379/l/1415011/show_image?image_id=4218291"><img src="https://media.screensteps.com/image_assets/assets/004/218/291/medium/07e595a9-2de1-449b-8119-97026ed0dc59.png" alt="VMware Horizon" /></a></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/291/medium/07e595a9-2de1-449b-8119-97026ed0dc59.png" alt="" /></p>
 <p>Open the Browser on your laptop</p>
 <ol>
 <li>Navigate to URL <a href="https://desktop.livefire.dev/">https://desktop.livefire.dev/</a></li>
 <li>Click On <strong>Install VMware Horizon Client</strong> that will direct to the full list of VMware Horizon Clients for various OS</li>
 </ol>
-<p><a href="https://nsx-labs.livefire.solutions/m/102379/l/1415011/show_image?image_id=4218293"><img src="https://media.screensteps.com/image_assets/assets/004/218/293/medium/f37a265b-d7fb-4480-a4ce-313842718ee8.png" alt="Download VMware Horizon Clients - My VMware" /></a></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/293/medium/f37a265b-d7fb-4480-a4ce-313842718ee8.png" alt="" /></p>
 <ol>
 <li>Click on <strong>Go to Downloads</strong> for either Windows or Mac</li>
 </ol>
-<p><a href="https://nsx-labs.livefire.solutions/m/102379/l/1415011/show_image?image_id=4218295"><img src="https://media.screensteps.com/image_assets/assets/004/218/295/medium/6fd68a34-32e7-45fa-91d9-b6fea9fe4838.png" alt="Download VMware Horizon Clients - My VMware" /></a></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/295/medium/6fd68a34-32e7-45fa-91d9-b6fea9fe4838.png" alt="" /></p>
 <ol>
 <li>Click <strong>DOWNLOAD NOW</strong> to download the client for the respective OS (In my case I choose Mac based Client).</li>
 </ol>
@@ -189,7 +188,7 @@
 <p>MacOS Client Security Settings: -- note that &quot;Allow connection via an SSL Proxy&quot; must be checked if &quot;Never connect to untrusted servers&quot; OR &quot;Warn before connecting to untrusted servers&quot; is selected.</p>
 <p>If &quot;Do not verify server identity certificates&quot; is selected, then the box does <strong>not</strong> need to be checked.</p>
 </blockquote>
-<p><img src="https://media.screensteps.com/image_assets/assets/004/298/488/original/a27e41dc-4241-42d9-9983-eb970e8e1c92.png" alt="Horizon Client Security Preferences" /></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/298/488/original/a27e41dc-4241-42d9-9983-eb970e8e1c92.png" alt="" /></p>
 <blockquote>
 <p>Windows Client Security Settings: </p>
 <p>-- note that &quot;Allow connection via an SSL Proxy&quot; must be checked if &quot;Never connect to untrusted servers&quot; OR &quot;Warn before connecting to untrusted servers&quot; is selected.</p>
@@ -197,7 +196,6 @@
 </blockquote>
 <p><img src="https://media.screensteps.com/image_assets/assets/004/298/490/original/198565e0-52b3-443f-8f76-42a01048820c.png" alt="" /></p>
 <h2 id="2-connect-to-connection-server"><a class="header" href="#2-connect-to-connection-server">2. Connect to connection server</a></h2>
-<hr />
 <p><img src="https://media.screensteps.com/image_assets/assets/004/218/245/original/20f6de71-5ea6-4f03-b5ff-3c3a513e0d32.png" alt="" /></p>
 <p>Open Horizon Client</p>
 <ol>
@@ -217,52 +215,50 @@
 <p>If you have SSL Certificate error when attempting to connect the client to desktop.livefire.dev, please see this article:</p>
 <p><a href="https://nsx-labs.livefire.solutions/m/102496/l/1395680-horizon-client-invalid-ssl-certificate">Horizon Client: Invalid SSL Certificate?</a></p>
 </blockquote>
-<p><a href="https://nsx-labs.livefire.solutions/m/102379/l/1415011/show_image?image_id=4218251"><img src="https://media.screensteps.com/image_assets/assets/004/218/251/medium/65ca81b6-a1ec-4488-b543-9d11d12b18bf.png" alt="Windows 10 Desktop" /></a></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/251/medium/65ca81b6-a1ec-4488-b543-9d11d12b18bf.png" alt="" /></p>
 <ol>
 <li>You should have access to the Jump Server as per the snapshot above</li>
 </ol>
-<h3 id="3-remote-desktop-to-the-control-center-to-access-the-lab-environment"><a class="header" href="#3-remote-desktop-to-the-control-center-to-access-the-lab-environment">3. Remote Desktop to the Control Center to access the LAB environment</a></h3>
-<hr />
-<p><img src="https://media.screensteps.com/image_assets/assets/004/218/253/original/007e5e2d-3fe2-4a0a-b0dd-0e6a0bb88895.png" alt="Windows 10 Desktop" /></p>
+<h2 id="3-remote-desktop-to-the-control-center-to-access-the-lab-environment"><a class="header" href="#3-remote-desktop-to-the-control-center-to-access-the-lab-environment">3. Remote Desktop to the Control Center to access the LAB environment</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/253/original/007e5e2d-3fe2-4a0a-b0dd-0e6a0bb88895.png" alt="" /></p>
 <ol>
 <li>Right Click On <strong>NSXRDP.rdp</strong> shortcut on the desktop</li>
 <li>Click <strong>Edit</strong></li>
 </ol>
-<p><img src="https://media.screensteps.com/image_assets/assets/004/218/299/original/11c5d76c-61bd-4ae8-8f1e-15ba364e1eb6.png" alt="Windows 10 Desktop" /></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/299/original/11c5d76c-61bd-4ae8-8f1e-15ba364e1eb6.png" alt="" /></p>
 <ol>
 <li>Under Computer Field fill in with <strong>IP Address</strong> provided to you by the Instructor. I my case it is 172.25.4.28</li>
 <li>Click <strong>Connect</strong></li>
 </ol>
-<p><img src="https://media.screensteps.com/image_assets/assets/004/218/301/original/76e6985e-7ff2-4a34-9eb0-e760c2e02575.png" alt="Windows 10 Desktop" /></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/301/original/76e6985e-7ff2-4a34-9eb0-e760c2e02575.png" alt="" /></p>
 <ol>
 <li>Click <strong>Connect</strong> again to accept the warning</li>
 </ol>
-<p><img src="https://media.screensteps.com/image_assets/assets/004/218/303/original/bfe747aa-9095-4b2d-a6e8-6ba1342432f0.png" alt="Windows 10 Desktop" /></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/303/original/bfe747aa-9095-4b2d-a6e8-6ba1342432f0.png" alt="" /></p>
 <ol>
 <li>Enter <strong>VMware1!</strong> as password</li>
 <li>Click <strong>OK</strong></li>
 </ol>
-<p><img src="https://media.screensteps.com/image_assets/assets/004/218/305/original/5968980a-dda4-4587-ac4e-4ae6c806a7fb.png" alt="Windows 10 Desktop" /></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/305/original/5968980a-dda4-4587-ac4e-4ae6c806a7fb.png" alt="" /></p>
 <ol>
 <li>Click <strong>Yes</strong> to ignore Certificate errors</li>
 </ol>
-<p><img src="https://media.screensteps.com/image_assets/assets/004/426/117/original/60f4dc95-289a-4d67-85d9-bd474d5b8156.png" alt="Windows 10 Desktop" /></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/426/117/original/60f4dc95-289a-4d67-85d9-bd474d5b8156.png" alt="" /></p>
 <p>Your RDP session will open in fullscreen mode:</p>
 <ol>
 <li>Verify that Lab Status shows <strong>Ready</strong></li>
 </ol>
-<h3 id="4-verify-login-and-vsphere-infrastructure"><a class="header" href="#4-verify-login-and-vsphere-infrastructure">4. Verify login and vSphere Infrastructure</a></h3>
-<hr />
-<p><img src="https://media.screensteps.com/image_assets/assets/004/218/265/original/74e78c6e-6ff8-45d3-a931-aa0a0360c0c3.png" alt="Windows 10 Desktop" /></p>
+<h2 id="4-verify-login-and-vsphere-infrastructure"><a class="header" href="#4-verify-login-and-vsphere-infrastructure">4. Verify login and vSphere Infrastructure</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/265/original/74e78c6e-6ff8-45d3-a931-aa0a0360c0c3.png" alt="" /></p>
 <ol>
 <li>Open <strong>Chrome Browser</strong> icon from the taskbar of your desktop</li>
 </ol>
-<p><a href="https://nsx-labs.livefire.solutions/m/102379/l/1415011/show_image?image_id=4218267"><img src="https://media.screensteps.com/image_assets/assets/004/218/267/medium/0768a503-cd83-47b8-b275-cdb44793f775.png" alt="Windows 10 Desktop" /></a></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/267/medium/0768a503-cd83-47b8-b275-cdb44793f775.png" alt="" /></p>
 <p>Default page directs you to vCenter vcsa-01a.corp.local</p>
 <ol>
 <li>Credentials will auto populate , hence click <strong>LOGIN</strong></li>
 </ol>
-<p><img src="https://media.screensteps.com/image_assets/assets/004/420/970/original/ad7e5a32-af48-4985-9077-878a486546d3.png" alt="Windows 10 Desktop" /></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/420/970/original/ad7e5a32-af48-4985-9077-878a486546d3.png" alt="" /></p>
 <ol>
 <li>Click <strong>VMs and Templates</strong> Icon</li>
 <li>Expand <strong>SiteA</strong> Data Center under vcsa-01a.corp.local</li>
@@ -279,22 +275,20 @@
 <tr><td align="left"><strong>nsxcsm-01a</strong></td><td align="left">Cloud Service Manager utilised for NSX Cloud integration</td></tr>
 <tr><td align="left"><strong>unbuntu-utils</strong></td><td align="left">VM will be used for automating deployments of the objects and configuration via Ansible and Python</td></tr>
 </tbody></table>
-<h3 id="5-verify-status-of-the-nsx-t-manager"><a class="header" href="#5-verify-status-of-the-nsx-t-manager">5. Verify status of the NSX-T Manager</a></h3>
-<hr />
-<p><img src="https://media.screensteps.com/image_assets/assets/004/218/281/original/4e7c5c6d-f179-4148-b41e-ccaf7ea59a89.png" alt="Windows 10 Desktop" /></p>
+<h2 id="5-verify-status-of-the-nsx-t-manager"><a class="header" href="#5-verify-status-of-the-nsx-t-manager">5. Verify status of the NSX-T Manager</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/281/original/4e7c5c6d-f179-4148-b41e-ccaf7ea59a89.png" alt="" /></p>
 <ol>
 <li>Open new TAB  inside Chrome browser and <strong>RegionA</strong> Bookmark folder</li>
 <li>Click <strong>NSX Manager GUI</strong> bookmark</li>
 </ol>
-<p><img src="https://media.screensteps.com/image_assets/assets/004/218/283/original/0cd28073-13d0-404d-b423-e1a1a2c0cf58.png" alt="Windows 10 Desktop" /></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/218/283/original/0cd28073-13d0-404d-b423-e1a1a2c0cf58.png" alt="" /></p>
 <p>Credentials will auto populate</p>
 <ol>
 <li>Click <strong>LOG IN</strong></li>
 </ol>
-<p><a href="https://nsx-labs.livefire.solutions/m/102379/l/1415011/show_image?image_id=4426119"><img src="https://media.screensteps.com/image_assets/assets/004/426/119/medium/385ec4f1-d409-4ea4-8a52-df0ae7defffe.png" alt="W10 Instructor Desktop" /></a></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/426/119/medium/385ec4f1-d409-4ea4-8a52-df0ae7defffe.png" alt="" /></p>
 <p>Your screen should look like shown above. Make sure that the <strong>POLICY</strong> view is activated.</p>
-<h3 id="6-conclusion"><a class="header" href="#6-conclusion">6. Conclusion</a></h3>
-<hr />
+<h2 id="6-conclusion"><a class="header" href="#6-conclusion">6. Conclusion</a></h2>
 <p>By following the above steps you verified your LAB components and their status. Components' status in your LAB environment should reflect as per snapshots above. If you find any discrepancy reach out to the Instructors</p>
 
                     </main>
@@ -334,21 +328,6 @@
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

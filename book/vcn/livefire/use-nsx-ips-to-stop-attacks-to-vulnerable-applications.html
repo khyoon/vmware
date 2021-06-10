@@ -165,7 +165,90 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="use-nsx-ips-to-stop-attacks-to-vulnerable-applications"><a class="header" href="#use-nsx-ips-to-stop-attacks-to-vulnerable-applications">Use NSX IPS to Stop Attacks to Vulnerable Applications</a></h1>
+                        <h1 id="23-use-nsx-ips-to-stop-attacks-to-vulnerable-applications"><a class="header" href="#23-use-nsx-ips-to-stop-attacks-to-vulnerable-applications">2.3 Use NSX IPS to Stop Attacks to Vulnerable Applications</a></h1>
+<h2 id="1-overview"><a class="header" href="#1-overview">1. Overview</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/048/854/medium/594110cf-8d2f-4ddf-a57b-aa96acd077f9.png" alt="" /></p>
+<p>The objective of this section is to prevent the initial attack on the Internet exposed vulnerable drupal server. The server is running a known vulnerable version of the drupal software. The best course of action would be to patch the server, but because the application owner is currently running validation tests for a new product launch on that server, they do not want to have any down time until next month.</p>
+<p>The security team can provide virtual patching for the drupal-dev virtual machine. We can create a dedicated IPS profile that blocks only the attacks that exploit the VM's vulnerability. We can granularly apply the IPS profile only to the affected VM. In this way, we limit the risk of accidentally blocking desired traffic matching signatures that are not relevant to the workload. If the IPS was centrally placed in the network, we could not follow this approach.</p>
+<h2 id="2-create-ips-profile-for-the-exposed-drupal-server-in-the-dmz"><a class="header" href="#2-create-ips-profile-for-the-exposed-drupal-server-in-the-dmz">2. Create IPS Profile for the exposed Drupal server in the DMZ</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/079/411/original/d39d8c19-17c8-4c37-b9f5-87698daf2cc2.png" alt="" /></p>
+<ol>
+<li>Select the <strong>Profiles</strong> tab</li>
+<li>Click on <strong>ADD PROFILE</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/079/417/medium/f52acaa3-cc9b-4c6d-8165-7c8bdb3bb0a2.png" alt="" /></p>
+<ol>
+<li>Type <strong>IPS-DRUPAL</strong> in the name field</li>
+<li>Click on <strong>Select</strong> for Products Affected</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/851/original/eb63f036-ef48-409e-8143-90dd261e4368.png" alt="" /></p>
+<ol>
+<li>Type drupal in the filter box</li>
+<li>Select the <strong>drupal server</strong> Product Affected Name</li>
+<li>Click <strong>SAVE</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/079/418/medium/7aa23ccb-c3ca-46e5-8a75-1d25c33c8665.png" alt="" /></p>
+<p>In our screenshot we now see only 4 signatures are included in this profile. 4 of high severity, and 1 of low severity. In your lab this may differ due to recent signature updates.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/079/413/original/3c4ec157-d414-4b76-8c29-3b2309282627.png" alt="" /></p>
+<ol>
+<li>Deselect the <strong>Low</strong> priority Signature group</li>
+<li>Click on <strong>Manage signatures for this profile</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/857/medium/976f11a9-bea2-4bc9-afdf-fa4002fd0710.png" alt="" /></p>
+<ol>
+<li>Change the Action for all the signatures to <strong>Drop</strong></li>
+<li>Click <strong>APPLY</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/079/420/original/95e5ba55-e6c7-4528-ab37-1b80daf8c66e.png" alt="" /></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/079/420/original/95e5ba55-e6c7-4528-ab37-1b80daf8c66e.png" alt="" /></p>
+<p>Click <strong>SAVE</strong></p>
+<h2 id="3-create-ips-policy-blocking-attacks-to-the-drupal-server"><a class="header" href="#3-create-ips-policy-blocking-attacks-to-the-drupal-server">3. Create IPS Policy blocking attacks to the Drupal Server</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/968/892/original/ac3165b2-f716-481b-8fc9-e356acf05261.png" alt="" /></p>
+<ol>
+<li>Navigate to the <strong>RULES</strong> tab</li>
+<li>Click on <strong>+ ADD POLICY</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/968/878/original/15185c46-5807-4a40-9934-3550257ab02d.png" alt="" /></p>
+<p>Change the name to <strong>IPS</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/968/870/medium/49a8e399-146a-41b7-91f9-1b6d0541e1a7.png" alt="" /></p>
+<ol>
+<li>Select the IPS policy</li>
+<li>Click on <strong>+ ADD RULE</strong></li>
+<li>Type <strong>IPS1</strong> in the Name field</li>
+<li>Set the <strong>DEV</strong> group in the Destinations field</li>
+<li>Select the <strong>IPS-DRUPAL</strong> for the IDS Profile</li>
+<li>Set the <strong>DEV</strong> group in the Apply To field</li>
+<li>Set the Mode to <strong>Detect &amp; Prevent</strong></li>
+<li>Click <strong>Publish</strong></li>
+</ol>
+<h2 id="4-test-the-ips-rule"><a class="header" href="#4-test-the-ips-rule">4. Test the IPS rule</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/968/876/original/15c3bcd7-361a-4496-9f45-5d9093bddcd0.png" alt="" /></p>
+<p>SSH to the attacker VM. Credentials are vmware/VMware1!</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/968/888/original/25aaace4-5ec8-4607-82da-9c5eae60f461.png" alt="" /></p>
+<p>Run the metasploit console by running the command <strong>sudo msfconsole</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/867/original/4a8f026e-a8f5-4cd4-b005-298ca2fcdac0.png" alt="" /></p>
+<p>Perform the drupalgeddon exploit again. For reference the commands are below. Copy and paste the one at the time.</p>
+<p><code>use exploit/unix/webapp/drupal_drupalgeddon2</code></p>
+<p><code>set RHOST 172.16.70.11</code></p>
+<p><code>set RPORT 8080</code></p>
+<p><code>exploit</code></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/206/842/original/d09fac92-425c-49c8-a3ba-000e14f3dfe9.png" alt="" /></p>
+<ol>
+<li>Navigate to the EVENTS tab</li>
+<li>FIlter the events based on <strong>Product Affected</strong></li>
+<li>Select the <strong>Drupal_Server</strong> product</li>
+<li>Click <strong>APPLY</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/869/medium/da0721e9-ec73-406f-b039-c78e8acdbad6.png" alt="" /></p>
+<ol>
+<li>Expand the only event that should be visible</li>
+<li>Note that the IPS has blocked some attacks (green portion of the bar). Click on the green portion of the bar.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/875/medium/09fb2ce1-9e0c-4c0c-a340-e6e6cc60b480.png" alt="" /></p>
+<ol>
+<li>Note the detail of the attacks that were blocked</li>
+<li>Click <strong>Close</strong></li>
+</ol>
 
                     </main>
 
@@ -204,21 +287,6 @@
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

@@ -166,6 +166,84 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="horizon-client-invalid-ssl-certificate"><a class="header" href="#horizon-client-invalid-ssl-certificate">Horizon Client: Invalid SSL Certificate?</a></h1>
+<h2 id="horizon-client-says-invalid-ssl-certificate"><a class="header" href="#horizon-client-says-invalid-ssl-certificate">Horizon Client Says Invalid SSL Certificate</a></h2>
+<blockquote>
+<p>The Load Balancers in front of our Horizon UAGs are using Wildcard SSL Certificates issued by Sectigo (formerly &quot;COMODO&quot;). While web browsers seem to trust this CA server, the user's OS may not and the Horizon client appears to rely on what the OS trusts.</p>
+</blockquote>
+<blockquote>
+<p>You ONLY need to follow the steps below for your relevant Operating System if your Horizon Client complains about the SSL Certificate. If your Horizon Client connected without issue, you may skip this article.</p>
+</blockquote>
+<p>The CA Certificate bundle has been placed on our blog for easy access: <a href="https://livefire.solutions/ca-bundle.crt">https://livefire.solutions/ca-bundle.crt</a></p>
+<h3 id="which-operating-system"><a class="header" href="#which-operating-system">Which Operating System?</a></h3>
+<h3 id="macos"><a class="header" href="#macos">MacOS</a></h3>
+<ol>
+<li>Download the <a href="https://livefire.solutions/ca-bundle.crt">ca-bundle.crt</a> file from our blog</li>
+<li>Double-click the pem file - MacOS should open the <strong>Keychain Access</strong> application</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/296/525/original/529d2091-b729-42f9-a2d5-394371209853.png" alt="" /></p>
+<ol>
+<li>Locate the &quot;<em><strong>Sectigo RSA Domain Validation Secure Server CA</strong></em>&quot; entry in your list of Certificates and <strong>double-click</strong> it</li>
+<li>The certificate should show as valid</li>
+<li>(Optionally) Change the &quot;When using this certificate&quot; dropdown to <strong>Always Trust</strong></li>
+</ol>
+<p>After re-launching the Horizon Client with the Preferences set as:</p>
+<ul>
+<li>Never connect to untrusted servers</li>
+<li>Allow connection via an SSL Proxy</li>
+</ul>
+<p>The client should no longer complain of an invalid SSL Certificate</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/296/565/original/0e326a8a-1d5e-47d1-a7fb-cc698a2b9886.png" alt="" /></p>
+<h3 id="windows"><a class="header" href="#windows">Windows</a></h3>
+<ul>
+<li>Download the <a href="https://livefire.solutions/ca-bundle.crt">ca-bundle.crt</a> file from our blog</li>
+<li>Double-click the .crt file to open it</li>
+</ul>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/296/812/original/61a264dd-0a83-4c3c-9b4c-084d8459988d.png" alt="" /></p>
+<ul>
+<li>Click the <strong>Install Certificate</strong> button</li>
+<li>When prompted, select <strong>Local Machine</strong> for the Store Location and click <strong>Next</strong></li>
+</ul>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/296/814/original/ce301c77-4be6-41d6-88e7-6561cd59a997.png" alt="" /></p>
+<ol>
+<li>Select <strong>Place all certificates in the following store</strong></li>
+<li>Click <strong>Browse</strong></li>
+<li>Select <strong>Trusted Root Certificate Authorities</strong></li>
+<li>Click <strong>OK</strong></li>
+<li>Click <strong>Next</strong>, then click <strong>Finish</strong></li>
+</ol>
+<p>Click <strong>OK</strong> on the confirmation window, then <strong>OK</strong> to close the Certificate details window</p>
+<p>After re-launching the Horizon with the Preferences set as:</p>
+<ul>
+<li>Never connect to untrusted servers</li>
+<li>Allow connection via an SSL Proxy</li>
+</ul>
+<p>The client should no longer complain of an invalid SSL Certificate</p>
+<h3 id="ubuntu"><a class="header" href="#ubuntu">Ubuntu</a></h3>
+<p>From a console, run the following commands from the folder with the file:</p>
+<pre><code>curl https://livefire.solutions/ca-bundle.crt -o ca-bundle.crt
+sudo cp ca-bundle.crt /usr/local/share/ca-certificates
+sudo update-ca-certificates
+</code></pre>
+<p>The following commands have been validated on Ubuntu 20.04 Desktop</p>
+<p>After re-launching the Horizon Client for Linux with the Preferences set as:</p>
+<ul>
+<li>Never connect to untrusted servers</li>
+<li>Allow connection via an SSL Proxy</li>
+</ul>
+<p>The client should no longer complain of an invalid SSL Certificate</p>
+<h3 id="manjaro-arch-linux"><a class="header" href="#manjaro-arch-linux">Manjaro (Arch) Linux</a></h3>
+<p>From a console, run the following commands from the folder with the file:</p>
+<pre><code>curl https://livefire.solutions/ca-bundle.crt -o ca-bundle.crt
+sudo trust anchor --store ca-bundle.crt
+sudo update-ca-trust
+</code></pre>
+<p>After re-launching the Horizon Client for Linux with the Preferences set as:</p>
+<ul>
+<li>Never connect to untrusted servers</li>
+<li>Allow connection via an SSL Proxy</li>
+</ul>
+<p>The client should no longer complain of an invalid SSL Certificate</p>
+<p>Congratulations, you are done!</p>
 
                     </main>
 
@@ -204,21 +282,6 @@
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

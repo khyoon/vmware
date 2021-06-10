@@ -165,7 +165,144 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="lab-introduction-and-overview"><a class="header" href="#lab-introduction-and-overview">Lab Introduction and Overview</a></h1>
+                        <h1 id="31-lab-introduction-and-overview"><a class="header" href="#31-lab-introduction-and-overview">3.1 Lab Introduction and Overview</a></h1>
+<p>An audit with our customer has revealed that different groups use different tools for load balance purposes. Most of them are free tools for which no support is available. As the customer has already invested in VMware's Virtual Cloud Network portfolio we want to standardize the customers load balancing environment and migrate all existing solutions to NSX Advanced Load Balancer.</p>
+<p>The first application we want to migrate is the customers WebApp. Currently we are using a dedicated VM running a nginx load balancer. The different tiers of the WebApp are connected to NSX overlay networks, thus we want to use the ALB's native NSX-T integration.</p>
+<h2 id="lab-tasks"><a class="header" href="#lab-tasks">Lab Tasks</a></h2>
+<ul>
+<li>Prepare VMware vSphere and NSX-T for implementation with NSX ALB</li>
+<li>Setup an NSX-T Cloud in ALB</li>
+<li>Replace the existing LB with the ALB
+<ul>
+<li>Reuse existing IP</li>
+<li>Import existing certificates</li>
+</ul>
+</li>
+<li>Optional: Optimize the Virtual Service and discuss operational benefits</li>
+</ul>
+<h2 id="preparations"><a class="header" href="#preparations">Preparations</a></h2>
+<p>The following items has been deployed and pre-configured:</p>
+<ul>
+<li>One NSX Advanced LB Controller VM has been deployed on vSphere</li>
+<li>CA and Controller certificates have been installed</li>
+<li>DNS and NTP servers are ser</li>
+</ul>
+<blockquote>
+<p>If you are new to NSX Advanced Load Balancer (aka AVI Networks) we have a detailed description of the steps that have already been performed in section below.</p>
+<p>For more information about the ALB's NSX integration please check out:<br />
+<a href="https://avinetworks.com/docs/20.1/nsx-t-design-guide/">https://avinetworks.com/docs/20.1/nsx-t-design-guide/</a></p>
+</blockquote>
+<blockquote>
+<p>You might find more &quot;Information only&quot; section in this guide.</p>
+<p>As the name implies those are just used to highlight alternatives or provide additional information and do not have to be performed!</p>
+</blockquote>
+<h2 id="1-information-only-ca-and-controller-certificates"><a class="header" href="#1-information-only-ca-and-controller-certificates">1. Information Only: CA and Controller Certificates]</a></h2>
+<p>The following steps demonstrate how to create and implement CA signed certificates in your ALB.</p>
+<h3 id="11-certificate-authority"><a class="header" href="#11-certificate-authority">1.1. Certificate Authority</a></h3>
+<p>First we want to import Certificate Authorities certificates.</p>
+<p>For this navigate to the management page of our CA. We are using the Microsoft CA in our example.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/323/medium/b74109d9-9f35-4091-88ec-5ac651743081.png" alt="" /></p>
+<p>On the CA management screen click <strong>Download a CA certificate</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/113/medium/68071615-e549-4424-8963-f29002cf4237.png" alt="" /></p>
+<ol>
+<li>Select <strong>Base 64</strong></li>
+<li>and click **Download CA certificate<br />
+**Store the file to a directory you have write access.</li>
+</ol>
+<p>Open the ALB management UI.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/115/medium/7a26b43e-233b-48af-9e14-d918624ab495.png" alt="" /></p>
+<ol>
+<li>Click the menu item in the top left corner and select <strong>Templates</strong></li>
+<li>Switch to the <strong>Security</strong> section</li>
+<li>Select the <strong>SSL/TLS Certificates</strong> tab</li>
+<li>Click <strong>CREATE</strong> on the right</li>
+<li>and select <strong>Root/Intermediate CA Certificate</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/117/original/24667ce7-a201-4a44-a600-f93c5a31b58d.png" alt="" /></p>
+<ol>
+<li>Enter a <strong>Name</strong> for your CA certificate</li>
+<li>Click <strong>Upload File</strong> and navigate to the the file you saved in the previous step.</li>
+<li>Click <strong>Validate</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/331/original/e8be6a0a-26d6-4192-a0c1-a70fcd810546.png" alt="" /></p>
+<p>You will see that the fields in the form will be filled with the information of your CA.</p>
+<p>Click <strong>Import</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/119/medium/8045fe3b-dc6d-4842-b84b-b5a09f00d533.png" alt="" /></p>
+<p>Your CA certificate now showed up in the list of Root/Intermediate CA list.</p>
+<h3 id="12-controller-certificate"><a class="header" href="#12-controller-certificate">1.2. Controller Certificate</a></h3>
+<p>Next we want to create a certificate for our ALB controller.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/121/medium/4c1b6417-2eba-4f02-adbe-866dd7e0a1f9.png" alt="" /></p>
+<p>Still on the <strong>SSL/TLS Certificates</strong> screen.</p>
+<ol>
+<li>Click <strong>CREATE</strong></li>
+<li>select <strong>Controller Certificate</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/337/original/2d30b776-94fd-4305-9b40-db6863bcfbcd.png" alt="" /></p>
+<p>Enter a <strong>Name</strong> and click <strong>CSR</strong>.</p>
+<p>This will open the following form:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/123/original/5c5556be-cdad-4db4-9ee2-aed988943c55.png" alt="" /></p>
+<p>Please fill out the form to your needs. As an example you can see how we created our certificate for our lab.</p>
+<p>After all the information is entered. Click <strong>Save</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/339/medium/3a9a0028-7f4f-4583-93ed-e81fb124a681.png" alt="" /></p>
+<p>You can then see a new entry for our CSR.</p>
+<p>Click the pencil icon on the right.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/341/original/0641ed2c-a6ed-4dfb-8d22-1d73629fb9b9.png" alt="" /></p>
+<p>Click <strong>Copy to clipboard</strong></p>
+<p>Re-open the management interface of your CA.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/343/medium/1cdcc838-2776-460c-9901-407321e15c6b.png" alt="" /></p>
+<p>Click <strong>Request a certificate</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/345/medium/e9dd2642-0ac4-4348-b2e1-de0f93d17fc2.png" alt="" /></p>
+<p>Select <strong>advanced certificate request</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/269/medium/f3f3c4bd-5a55-4069-9bc4-f9e2b262cc6c.png" alt="" /></p>
+<ol>
+<li>Paste the CSR into the Request field.</li>
+<li>Select a valid template for your organization. In our case we have VMware Certificate Template</li>
+<li>Press <strong>Submit</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/349/medium/cedb2d20-5304-40c3-8ce0-f02bf0ac85b9.png" alt="" /></p>
+<ol>
+<li>Make sure you select <strong>Base 64 encoded.</strong></li>
+<li>Then click <strong>Download certificate</strong> and save it to a local directory.</li>
+</ol>
+<p>Switch back to the ALB management UI.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/351/original/96cc1c3a-5f07-42aa-960c-faef1a575b82.png" alt="" /></p>
+<p>The Edit Certificate dialogue should be still open.</p>
+<ol>
+<li>Click <strong>Upload File</strong> and point to the certificate file you have just downloaded.</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<p>To activate the new certificate we have to change the Controller certificate:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/271/medium/3230b9b1-cbf7-4082-894c-6f9986d64ec2.png" alt="" /></p>
+<ol>
+<li>Switch the configuration context to <strong>Administration</strong> using the menu button in the top left corner.</li>
+<li>Click <strong>Settings</strong></li>
+<li>Switch to the <strong>Access Settings</strong> tab</li>
+<li>Click the pencil icon on the right</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/273/medium/9d0f1416-1d1f-427c-ab38-4367214c1d5b.png" alt="" /></p>
+<ol>
+<li>Replace the existing <strong>SSL/TTL Certificate</strong> with the one you have just created.</li>
+<li>Then click <strong>Save</strong></li>
+</ol>
+<p>Then logout from the management UI.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/355/original/4d182537-6bbd-4c8b-b643-a948043cb221.png" alt="" /></p>
+<p>Close the existing tab and open a new one.</p>
+<p>If you point your browser now to the management UI you will see that the controller has a valid certificate.</p>
+<h2 id="2-information-only-configure-dns-and-ntp-server"><a class="header" href="#2-information-only-configure-dns-and-ntp-server">2. Information Only: Configure DNS and NTP Server</a></h2>
+<p>Next we want to point the ALB Controller to our existing DNS and NTP Server.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/275/medium/fa8e2376-41d9-454c-84c8-821af3d7a024.png" alt="" /></p>
+<ol>
+<li>Select <strong>Administrator</strong> from the system menu in the top left corner.</li>
+<li>Click <strong>Settings</strong></li>
+<li>Switch to the <strong>DNS/NTP</strong> tab</li>
+<li>and click the pencil icon.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/281/277/original/939f1393-345c-4a6f-9d77-67dfe4f35445.png" alt="" /></p>
+<ol>
+<li>Enter your DNS server</li>
+<li>Enter the NTP servers you want connect to</li>
+<li>Click <strong>Save</strong></li>
+</ol>
 
                     </main>
 
@@ -204,21 +341,6 @@
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

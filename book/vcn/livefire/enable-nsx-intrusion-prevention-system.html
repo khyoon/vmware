@@ -165,7 +165,50 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="enable-nsx-intrusion-prevention-system-ids"><a class="header" href="#enable-nsx-intrusion-prevention-system-ids">Enable NSX Intrusion Prevention System (IDS)</a></h1>
+                        <h1 id="21-enable-nsx-intrusion-prevention-system-ids"><a class="header" href="#21-enable-nsx-intrusion-prevention-system-ids">2.1 Enable NSX Intrusion Prevention System (IDS)</a></h1>
+<h2 id="1-overview"><a class="header" href="#1-overview">1. Overview</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/071/287/medium/c6a0324b-3ca7-4f98-ad80-70cacc290d14.png" alt="" /></p>
+<p>In this section, we will enable the NSX IDS on both the DMZ and internal zones.  The IDS will not stop eventual attacks, but it should trigger an alert visible in the NSX UI or the IPS logs. We will use the default IPS profile. The default IPS profile triggers an alert for the IPS events of the highest severity: Critical. We will perform the configuration of the IDS rules via the API.</p>
+<h2 id="2-steps"><a class="header" href="#2-steps">2. Steps</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/964/448/medium/fa86037e-3934-4876-83d7-27be03b1f5e4.png" alt="" /></p>
+<ol>
+<li>Select the <strong>Security</strong> tab</li>
+<li>Click on <strong>Distributed IDS/IPS</strong></li>
+<li>Click on <strong>GET STARTED</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/964/452/medium/22903352-d9e8-4acd-b86e-69599a9cce23.png" alt="" /></p>
+<ol>
+<li>Check to be in the Settings tab</li>
+<li>Toggle the switch to Enable <strong>Intrusion Detection</strong> and <strong>Prevention</strong> for Cluster-01a</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/964/450/original/5d72df74-90ad-43c2-8189-9f7a7bd65087.png" alt="" /></p>
+<ol>
+<li>Click <strong>YES</strong> to confirm</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/077/076/original/b2ff04ea-1964-45a6-a054-56c1fa760caa.png" alt="" /></p>
+<ol>
+<li>Navigate to the <strong>profile</strong> tab</li>
+<li>Click <strong>ADD PROFILE</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/077/072/medium/08373e14-3fa2-4786-880c-f7eb6f47ce77.png" alt="" /></p>
+<ol>
+<li>Type <strong>IDS-PROFILE</strong> in the name field (<strong>It's case sensitive</strong> as we are going to use this object in a API call in the next step. If you type it wrong, you have to delete it and recreate it!!)</li>
+<li>Note that all signatures are included</li>
+<li>Click <strong>SAVE</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/964/467/medium/3545c4c0-b9c3-484b-b729-7b9614e6a472.png" alt="" /></p>
+<ol>
+<li>Navigate to the <strong>RULES</strong> tab</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/206/596/medium/b6dbbf0d-c9a2-4f0b-b440-11e84fe5254f.png" alt="" /></p>
+<p>From the ubuntu-utlis server, run the command:</p>
+<p><code>curl -k --user 'admin:VMware1!VMware1!' -H 'Content-Type: application/json' --request PATCH 'https://nsxmgr-01a/policy/api/v1/infra' --data '@/home/livefire/vcnlivefire-v1/ids.json'</code></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/077/074/medium/27487732-84fa-4c68-ac17-c3b3342b442d.png" alt="" /></p>
+<ol>
+<li>Click <strong>REFRESH</strong></li>
+<li>Expand the <strong>IDS</strong> Policy</li>
+</ol>
+<p>You should see the IDS rules created by our Policy API call</p>
 
                     </main>
 
@@ -204,21 +247,6 @@
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

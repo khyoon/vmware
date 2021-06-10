@@ -165,7 +165,315 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="replace-existing-load-balancer"><a class="header" href="#replace-existing-load-balancer">Replace existing Load Balancer</a></h1>
+                        <h1 id="34-replace-existing-load-balancer"><a class="header" href="#34-replace-existing-load-balancer">3.4 Replace existing Load Balancer</a></h1>
+<blockquote>
+<p>In this module we will replace the existing LB solution and deploy the first Virtual Service. We will also see how the integration works and which objects will be created in vSphere and NSX-T.</p>
+</blockquote>
+<h2 id="1-check-existing-solution"><a class="header" href="#1-check-existing-solution">1. Check Existing Solution</a></h2>
+<p>Before we create the virtual service in ALB, we need to check out the existing solution.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/600/medium/e1cbe995-5615-4838-822c-25425521c0bd.png" alt="" /></p>
+<p>Clicking on the bookmark <strong>3-Tiers-WebApp</strong> in your browser will point to an address: <a href="https://webapp.corp.local/cgi-bin/app.py">https://webapp.corp.local/cgi-bin/app.py</a></p>
+<p>Repetitive clicks on the bookmark will reveal that the LB will alternate between <strong>172.16.10.11</strong> and <strong>172.16.10.12</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/139/399/medium/33770078-6ca9-42b3-9159-b2b1196f0b25.png" alt="" /></p>
+<p>Looking at the inventory in vCenter Server, we can identify the load balancer VM <strong>lb-01a</strong> with the IP address <strong>172.16.10.10.</strong> The DNS entry <strong>webapp.corp.local</strong> will point to this IP.</p>
+<h2 id="2-replacement-process"><a class="header" href="#2-replacement-process">2. Replacement Process</a></h2>
+<h3 id="21-import-the-certificates"><a class="header" href="#21-import-the-certificates">2.1. Import the Certificates</a></h3>
+<p>Remember: the customer insisted on using the existing certificates and using the same IP for the ALB based service.</p>
+<p>So we have to first import the certificates. We can find them in the /etc/nginx/ssl directory of lb-01a.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/602/medium/25f83f9b-7f03-4152-ac14-0948bb929c6b.png" alt="" /></p>
+<p>Please open a Command Prompt on your controlcenter VM.</p>
+<ol>
+<li>To make sure we can easily find the downloaded files, change to the directory Downloads: <code>cd Downloads</code></li>
+<li>Initiate the download using: <code>scp root@172.16.10.10:/etc/nginx/ssl/webapp.* .</code> Use password: VMware1!</li>
+<li>Three files should be downloaded. We can ignore the .conf file, but we are intersted in the .key and the .pem file.</li>
+</ol>
+<p>Please re-open the tab pointing to the ALB management UI.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/604/medium/a387013c-0794-4f42-aaae-1afddc9fbe68.png" alt="" /></p>
+<ol>
+<li>Switch to the <strong>Templates</strong> scope using the system menu in the top left corner.</li>
+<li>Click <strong>Security</strong></li>
+<li>Make sure you are viewing the <strong>SSL/TLS Certificates</strong> tab</li>
+<li>Click <strong>CREATE</strong> and select <strong>Application Certificate</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/606/original/58971142-272e-4610-90e5-8ad4d822e936.png" alt="" /></p>
+<ol>
+<li>Enter a name for the certificate: <strong>webapp.corp.local</strong></li>
+<li>Type: <strong>Import</strong></li>
+<li>In the Certificate row select <strong>Upload File</strong> and click on the button below</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/608/medium/5f994848-b21b-4f26-bfc4-c2cc337cc5de.png" alt="" /></p>
+<ol>
+<li>Point the file manager to the Downloads directory and select: <strong>webapp.pem</strong></li>
+<li>Click <strong>Open</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/610/original/9ee60ef4-b75c-4402-b54a-f94859d863c2.png" alt="" /></p>
+<ol>
+<li>Repeat the step above for the Key file in the next row. Upload the file <strong>webapp.key</strong></li>
+<li>Then click <strong>Validate</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/139/409/original/fa902029-b814-42dc-8d81-1a7b807424f1.png" alt="" /></p>
+<p>The content of the certificate files is now shown in the UI.</p>
+<p>Click <strong>Save</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/612/medium/ebd42d3a-bfa3-4502-8ab4-db97daa407ba.png" alt="" /></p>
+<p>The certificate along some information about it should appear now in the list of certificates.</p>
+<p>Now we are ready to create the Virtual Service!</p>
+<h3 id="22-create-virtual-service"><a class="header" href="#22-create-virtual-service">2.2. Create Virtual Service</a></h3>
+<blockquote>
+<p>The VS setup is a multi-step process. Please do not rush through the next steps and read the instructions carefully.</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/825/medium/5286e055-1f71-44b9-b020-dbaeefb67418.png" alt="" /></p>
+<ol>
+<li>Select <strong>Applications</strong> from the systems menu.</li>
+<li>Click <strong>Dashboard</strong></li>
+<li>Click <strong>CREATE VIRTUAL SERVICE</strong> and choose <strong>Advanced Setup</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/827/medium/996571ff-ee85-4fa5-9f59-7522a9f335ce.png" alt="" /></p>
+<ol>
+<li>Select the NSX-T Cloud: <strong>nsxmgr-01</strong></li>
+<li>Click <strong>Next</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/829/medium/b30edaff-9241-43ea-8db3-5f650c43cb47.png" alt="" /></p>
+<ol>
+<li>Name: <strong>webapp.corp.local</strong></li>
+<li>Enter the FQDN: <strong>webapp.corp.local</strong> - you will notice that the field below will be automatically populated with the IP.</li>
+<li>Select the Application Profile: <strong>System-Secure-HTTP</strong></li>
+</ol>
+<p>Please scroll down to the bottom of the page.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/831/medium/b5d0e74d-1ca9-484d-8310-1ff6e91c5fc6.png" alt="" /></p>
+<ol>
+<li>To tell the ALB which routing context we are using we have to select the Tier1 Logical Router: <strong>T1-GATEWAY</strong></li>
+<li>Set the Service Port to: **443<br />
+**and make sure you have enabled <strong>SSL</strong></li>
+<li>Please open the drop-down menu of the <strong>SSL Certificates</strong> field and</li>
+<li>select the previous imported certificate: <strong>webapp.corp.local</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/833/medium/cba3cd44-a553-4979-9f14-59b4d185ecbd.png" alt="" /></p>
+<ol>
+<li>Please remove the <strong>System-Default-Cert</strong> form the list of SSL Certificates by clicking the X as indicated in the screenshot.</li>
+<li>Click the drop-down menu in the <strong>Pool</strong> field</li>
+<li>and select <strong>Create Pool</strong></li>
+</ol>
+<h4 id="221-create-server-pool"><a class="header" href="#221-create-server-pool">2.2.1. Create Server Pool</a></h4>
+<blockquote>
+<p>This will open the Pool setup wizard.</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/835/medium/4fe7c545-04b5-4f83-a563-ca3ef3bc75cc.png" alt="" /></p>
+<ol>
+<li>The system will put in a name based on the VS name. This will work for us</li>
+<li>Default Service Port: <strong>443</strong></li>
+<li>Set the Load Balance algorithm to: <strong>Round Robin</strong></li>
+<li>Tier1 Logical Router: <strong>T1-GATEWAY</strong></li>
+<li>Add an Active Monitor: <strong>System-HTTPS</strong></li>
+</ol>
+<p>Please scroll down.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/837/medium/c8c279ae-e3b3-4e0e-bf05-2150aece56b7.png" alt="" /></p>
+<ol>
+<li>Please <strong>Enable SSL</strong></li>
+<li>Select SSL Profile: <strong>System-Standard</strong></li>
+<li>Click <strong>Next</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/839/medium/5fc30755-b549-420e-af74-da7f088ebc0f.png" alt="" /></p>
+<p>Next we have to define the server pool members. The ALB reads the inventory of NSX-T manager and also the Security Groups defined - the Group WEB contains both the web servers of the WebApp.</p>
+<ol>
+<li>Please select <strong>Security Groups</strong></li>
+<li>Choose NSX Security Group <strong>WEB</strong></li>
+<li>Click <strong>Next</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/428/234/medium/4daaea7b-a8b7-42b4-8213-c465b956f26f.png" alt="" /></p>
+<p>No need to change any values here. Click <strong>Next</strong>.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/428/236/medium/23665fcd-d6a7-4cbc-8c7c-a03b031de1cf.png" alt="" /></p>
+<p>Click <strong>Save</strong>.</p>
+<p>Pool created! Back on the Virtual Service configuration screen:</p>
+<blockquote>
+<p>This concludes the Pools setup wizard and will bring us back to the VS configuration dialogue.</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/922/medium/ffeac45d-fcb7-466d-9786-3b73c3934052.png" alt="" /></p>
+<ol>
+<li>Please set the SSL Profile for the VS to: <strong>System-Standard</strong></li>
+<li>Verify that the new pool is shown in the Pool field</li>
+<li>and that there is only the <strong>webapp.corp.local</strong> certificate listed in the SSL Certificate field</li>
+<li>Click <strong>Next</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/849/medium/0aac9128-e7e3-4945-8007-104436b4bae3.png" alt="" /></p>
+<p>We will leave the <strong>Policies</strong> tab empty for now. You will create some policies in Optimization &amp; Operations lab.</p>
+<p>Click <strong>Next</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/851/medium/839cae84-45ed-480e-9e3c-b81131079ece.png" alt="" /></p>
+<p>For our lab we want to make sure to log everything.</p>
+<ol>
+<li>Activate: <strong>Log all headers</strong></li>
+<li>Enable: <strong>Non-significant logs</strong></li>
+<li>Set the Non-significant log duration to: **0<br />
+**0 will set it to indefinitely. Please do not use this setting in production environments!</li>
+<li>Click <strong>Next</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/139/425/medium/71358725-55d8-44f3-9e5b-a258ce5df552.png" alt="" /></p>
+<p>No need to change anything on the Advances screen. Just click <strong>Save</strong></p>
+<h3 id="23-virtual-service-deployment-in-progress"><a class="header" href="#23-virtual-service-deployment-in-progress">2.3. Virtual Service Deployment in Progress</a></h3>
+<blockquote>
+<p>Now that we have configured the fist VS the SE deployment is triggered.</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/969/medium/eb86215c-4416-45d6-9599-6f423ce4d3ee.png" alt="" /></p>
+<p>Your screen should look similar to the one above. If not: Open the Virtual Services tab in the Application section and click the webapp.corp.local.</p>
+<p>First you will notice the red exclamation mark in the top right corner. Please place your mouse over it then a message box appears indicating that the SE deployment is in progress.</p>
+<p>This will take some time, in the meantime we want to explore what happens behind the scenes.</p>
+<h3 id="24-what-happens-in-vsphere"><a class="header" href="#24-what-happens-in-vsphere">2.4. What happens in vSphere?</a></h3>
+<p>Please open the browser tab pointing to vCenter Server.</p>
+<h4 id="241-shutdown-existing-load-balancer"><a class="header" href="#241-shutdown-existing-load-balancer">2.4.1. Shutdown Existing Load Balancer</a></h4>
+<p>Lets shut down the old load balancer VM.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/853/medium/9cdd9414-35d1-49f0-8e6e-c0fced7a942f.png" alt="" /></p>
+<ol>
+<li>In the <strong>Host &amp; Cluster</strong> View</li>
+<li>Look for the <strong>lb-01a</strong> virtual machine</li>
+<li>and <strong>shut it down</strong>.</li>
+</ol>
+<h4 id="242-service-engine-vms-being-deployed"><a class="header" href="#242-service-engine-vms-being-deployed">2.4.2. Service Engine VMs being deployed</a></h4>
+<p>The SEs are still being deployed....</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/855/medium/114851ca-cb8d-49d5-8ecd-6b53188dca42.png" alt="" /></p>
+<p>You can see two powered down VMs in the vCenter's inventory.</p>
+<blockquote>
+<p>Note: the last five letters in the SE name might be different in your environment. These are random generated names!</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/139/431/original/d07ef1c8-c1d0-403d-8fff-7dd3cbb22bdb.png" alt="" /></p>
+<p>After a few minutes the SE VMs should be shown as powered on. <strong>This might take some time - what about a coffee?</strong></p>
+<blockquote>
+<p>Can you explain how the SE names have been generated?</p>
+<ul>
+<li>We set the ALB prefix during NSX-T Cloud Setup and</li>
+<li>DefaultGroup was set in the SE Group profile</li>
+</ul>
+</blockquote>
+<h5 id="2421-content-library"><a class="header" href="#2421-content-library">2.4.2.1. Content Library</a></h5>
+<p>Lets check out the Content Library.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/925/original/35368321-b5ec-40b1-b306-b889e6bae811.png" alt="" /></p>
+<ol>
+<li>Click <strong>Menu</strong></li>
+<li>Click <strong>Content Library</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/927/medium/744e95ed-8543-4cd3-bddc-b76c8a5cf704.png" alt="" /></p>
+<p>After clicking the <strong>NSX Advanced Loadbalancer</strong> library you will the ALB uploaded an OVA to vCenter Server.</p>
+<p>Please note: the version number in your pod might be different.</p>
+<h3 id="25-objects-created-in-nsx-t"><a class="header" href="#25-objects-created-in-nsx-t">2.5. Objects Created in NSX-T</a></h3>
+<p>Now lets take a look on all the objects that have been created by the Advanced Load Balancer.</p>
+<p>Please open the tab pointing to the NSX-T Manager UI.</p>
+<h4 id="251-groups"><a class="header" href="#251-groups">2.5.1. Groups</a></h4>
+<p>To aide security administrators with rule management the ALB created some groups in NSX-T and populated them with the IPs of the different objects.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/929/medium/6b4d5e43-657f-45da-8586-34ec6d04cf86.png" alt="" /></p>
+<ol>
+<li>Please click <strong>Inventory</strong> in top menu bar.</li>
+<li>Select <strong>Groups</strong></li>
+<li>The groups created by the ALB are prefixed as defines with ALB-<br />
+Note: it might take some time to see the <strong>ALB-webapp*</strong> groups.</li>
+<li>Please feel free to view the group members.</li>
+</ol>
+<p>Please see the following link for more information regarding Security Automation:<br />
+https://avinetworks.com/docs/20.1/nsx-t-design-guide/#security-automation</p>
+<h4 id="252-services"><a class="header" href="#252-services">2.5.2. Services</a></h4>
+<p>Now lets see the Service definitions.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/931/medium/37d8e95b-8a7b-4e23-ba97-a58c41718bb0.png" alt="" /></p>
+<ol>
+<li>Still on the Inventory tab, select <strong>Services</strong></li>
+<li>Use a filter for <strong>ALB</strong> to view the services configured by the Controller.</li>
+<li>You will get a list of services used by the NSX Advanced LB</li>
+<li>Optional: check the Tags assigned to the services.</li>
+</ol>
+<h4 id="253-se-management-segments"><a class="header" href="#253-se-management-segments">2.5.3. SE Management Segments</a></h4>
+<p>Let take a look on the SE Management segment we crated at the beginning.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/942/medium/90e6fe14-da5c-4461-b74d-46cdbc850bb9.png" alt="" /></p>
+<ul>
+<li>Click <strong>Networking</strong></li>
+<li>Switch to the <strong>Segments</strong> view</li>
+<li>Locate the <strong>OV-LBMGMT</strong> segment</li>
+<li>Click the number in the <strong>Ports</strong> column.</li>
+</ul>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/944/medium/dbd34425-d33a-446b-ab56-135e431f3532.png" alt="" /></p>
+<p>You can see the two SEs that have been deployed in the list.</p>
+<h4 id="254-static-routes"><a class="header" href="#254-static-routes">2.5.4. Static Routes</a></h4>
+<p>During the lecture we learned that the ALB uses static routes to advertise the virtual service IPs.</p>
+<p>So then lets see what we can find on the T1 that we used in our setup.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/971/medium/4f0f64aa-0e60-47ae-9a2c-908ab9a06094.png" alt="" /></p>
+<ol>
+<li>Still on the Networking tab, select <strong>Tier-1 Gateways</strong></li>
+<li>Locate the <strong>T1-GATEWAY</strong> and open the details view by clicking on the triangle.</li>
+<li>Next expand the <strong>STATIC ROUTES</strong></li>
+<li>Click the <strong>1</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/973/original/a5b80497-755c-41ed-9644-38250cd3b2d1.png" alt="" /></p>
+<ol>
+<li>In the <strong>Network</strong> column you will see the VIP of the WebApp virtual service.</li>
+<li>Click the <strong>1</strong> in the <strong>Next Hops</strong> column</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/975/original/69b81a6a-01e3-411b-b30b-c8b59ff0793c.png" alt="" /></p>
+<ol>
+<li>The IP address is the IP of the SE running the virtual service.</li>
+<li>Click <strong>CLOSE</strong></li>
+</ol>
+<p>Please also close all other dialogue windows. Meanwhile the virtual service should be up and running... lets see!</p>
+<h2 id="3-virtual-service-deployment-check"><a class="header" href="#3-virtual-service-deployment-check">3. Virtual Service Deployment Check</a></h2>
+<p>Please re-open the tab pointing to the management UI of the ALB.</p>
+<p>This is the screen we left in step 2.3:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/977/medium/b4089749-352b-49b8-80ce-78b7050dd95f.png" alt="" /></p>
+<p>Place the mouse over the icon in the top right corner to get an overview of the status of the virtual service.</p>
+<blockquote>
+<p>You get to the screen shown above by navigating:</p>
+<p>Applications &gt; Virtual Services &gt; click webapp.corp.local</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/139/589/medium/c253b1f0-d8cb-4800-bbb7-c3dc73d8bbe7.png" alt="" /></p>
+<p>Lets get more information about the status of the virtual service: Please place your mouse over the virtual service name.</p>
+<p>You will see the service uptime, configured ports and IPs.</p>
+<p>You can also identify the Service Engine that the VS is hosted on -&gt; note the name we will take a look at it in vSphere in a moment.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/285/060/medium/07d6b9a2-a031-404d-9b8a-bf483fa6978e.png" alt="" /></p>
+<ol>
+<li>Click <strong>Events</strong></li>
+<li>In the table you can see a list of all the event related to this VS. You can view details to every entry by clicking the <strong>+</strong> sign on the right.</li>
+</ol>
+<h3 id="31-optional-check-se-in-vsphere"><a class="header" href="#31-optional-check-se-in-vsphere">3.1. Optional: Check SE in vSphere</a></h3>
+<p>We identified the SE that the VS is hosted on in a previous step</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/139/591/medium/df35c1b7-e4ce-4dc2-9521-b5872737219e.png" alt="" /></p>
+<p>When you check out the configuration of the VM, you will notice that it is connected to the OV-LBMGMT and the OV-WEB segments.</p>
+<h3 id="32-server-pool"><a class="header" href="#32-server-pool">3.2. Server Pool</a></h3>
+<p>Next we will take a look on the server pool.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/285/089/medium/451ebc53-44df-4e6a-ac20-c5a01311ab52.png" alt="" /></p>
+<ol>
+<li>You should be still on the Applications screen. Now switch to <strong>Pools.</strong></li>
+<li>Click <strong>webapp.corp.local-pool</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/285/091/medium/9dd9c357-f106-41c2-8baf-31eb1526d793.png" alt="" /></p>
+<ol>
+<li>Click <strong>Servers</strong> to get to the list of the pool members.</li>
+<li>Next click one of the IPs in the <strong>Server Name</strong> column.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/285/093/medium/c9b69238-4398-4708-bb08-225a0c93c5d9.png" alt="" /></p>
+<p>On this page you can see the results provided by the Health Monitors.</p>
+<ol>
+<li>In our case we have an Passive monitor, that cannot be configured. 
+And an active one: <strong>System-HTTPS</strong></li>
+<li>Details of the heath monitor results can be viewed by clicking the <strong>+</strong> icon on the right.</li>
+<li>Please go back to the Pools overview by clicking the arrow sign in the top left corner.</li>
+</ol>
+<blockquote>
+<p>If you pool members are marked down after VS creation. Check out the results of the active health monitor.</p>
+<p>Sometimes its just the wrong response that marks your servers down!</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/139/601/medium/50663b79-b0f5-4ddb-92a0-912865a34254.png" alt="" /></p>
+<p>Back on the Pools page, click <strong>Events</strong>. Please feel free to view the details of the events of the server pool.</p>
+<p>Meanwhile you should have noticed that the +/- are always used to expand/fold fields in the UI.   :-)</p>
+<h3 id="33-service-engines"><a class="header" href="#33-service-engines">3.3. Service Engines</a></h3>
+<p>In a final step we just want to take a look on the SEs:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/285/138/medium/591a5506-c1b9-4031-95bd-24420cbe97be.png" alt="" /></p>
+<ol>
+<li>Please switch to the <strong>Infrastructure</strong> context using the system menu in the top left corner.</li>
+<li>Click <strong>Service Engine</strong></li>
+<li>Select the NSX-T cloud: <strong>nsxmgr-01a</strong></li>
+</ol>
+<p>In my case the VS was placed on the first SE and I can view all active VS on a SE by expanding the line using the + signal on the right.</p>
+<h2 id="4-access-webapp"><a class="header" href="#4-access-webapp">4. Access WebApp</a></h2>
+<p>Finally, we want to check our virtual service.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/115/744/medium/c24668d0-7d43-44d5-9819-0c464a5987e3.png" alt="" /></p>
+<p>Please open a new tab in Chrome and click the bookmark 3-Tiers-WebApp. Your screen should look similar to the screenshot above.</p>
+<p>Repetitive clicks will switch between the two IPs: .11 and .12. If this is not the case in your environment, please check the LB algorithm set at the server pool.</p>
+<blockquote>
+<p>Congratulations! You have successfully deployed a virtual service in NSX Advanced Load Balancer.</p>
+</blockquote>
 
                     </main>
 
@@ -204,21 +512,6 @@
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

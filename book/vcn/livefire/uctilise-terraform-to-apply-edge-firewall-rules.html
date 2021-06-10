@@ -165,7 +165,185 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="utilise-terraform-to-apply-edge-firewall-rules"><a class="header" href="#utilise-terraform-to-apply-edge-firewall-rules">Utilise Terraform To Apply Edge Firewall Rules</a></h1>
+                        <h1 id="11-utilise-terraform-to-apply-edge-firewall-rules"><a class="header" href="#11-utilise-terraform-to-apply-edge-firewall-rules">1.1 Utilise Terraform To Apply Edge Firewall Rules</a></h1>
+<h2 id="1-overview"><a class="header" href="#1-overview">1. Overview</a></h2>
+<p>Your customer believes that one of their applications has been compromised, and are looking for you to implement some edge security using day-2 automation techniques. This will allow them to replicate the configuration for other applications in the future. </p>
+<p>To facilitate the implementation of zone level segmentation, the network team deployed a T1 Gateway dedicated to each security zone. In this way, the zone-specific rules can be applied to the appropriate T1 Gateway, making the rule sets easier. Granular edge firewall rules allow the internet facing drupal web server to communicate only to the internal zone's development database. In this way, if an attacker compromises the drupal dev server, they will not directly pivot to the production database where critical data is stored. We will perform the majority edge firewall configuration via Terraform, to segment the DMZ and internal zone via the edge firewall, and we will then apply some modifications via the UI. We will verify our work via the NSX built-in traceflow tool.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/048/707/medium/f0f4b35d-889f-4658-9e6a-b84a8ac084f6.png" alt="" /></p>
+<h2 id="2-apply-edge-firewall-segmentation-via-terraform"><a class="header" href="#2-apply-edge-firewall-segmentation-via-terraform">2. Apply Edge Firewall Segmentation via Terraform</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/244/original/d699fd43-e0a5-4f6e-a6e0-b363fa13fb3e.png" alt="" /></p>
+<p>SSh to ubuntu-utils using Putty. Credentials are livefire/VMware1!</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/206/568/medium/792b4eaa-c086-40f1-80da-ed4adc8e35e6.png" alt="" /></p>
+<p>Clone Github repository via the command <code>git clone https://github.com/nsxlivefire/vcnlivefire-v1</code></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/254/original/77267bf8-138b-4de8-87fd-629c9628efd4.png" alt="" /></p>
+<ol>
+<li>Create a new directory named terraform via the command <code>mkdir terraform</code></li>
+<li>Navigate to the terraform directory via the command  <code>cd terraform/</code></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/206/570/original/543c97e0-4e7b-4ceb-bea7-276cdb11d1bb.png" alt="" /></p>
+<ol>
+<li>Copy the terraform file describing the edge firewall configuration from the repository directory to the current directory via the command: <code>cp ../vcnlivefire-v1/zone_based_efw.tf ./</code></li>
+<li>Verify the file has been copied via the command <code>ls</code></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/533/medium/d9ec6704-9a82-46bf-9342-af0bacc9d45c.png" alt="" /></p>
+<ol>
+<li>run the following command: <strong>cat zone_based_efw.tf,</strong> this will provide you with the contents of the terraform configuration file that we will be executing.</li>
+<li>As we are interacting with NSX-T our provider is nsxt, with the associated details to connect to the NSX Manager</li>
+<li>We have two data sources that are exported, which will be consumed in the remainder of the terraform configuration file
+<ol>
+<li>The first is a t1 gateway called &quot;T1-INTERNAL&quot; - this is the object within NSX, which we then export to a local name &quot;t1-internal&quot;</li>
+<li>The second is the grouping object, &quot;MGMT&quot;, which is exported to a local name &quot;mgmt&quot;</li>
+</ol>
+</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/539/medium/a25b6dc5-edc8-48bd-a010-39e47cb1f6c2.png" alt="" /></p>
+<p>Next we declare a number of resources that we are going to create:</p>
+<ol>
+<li>An NSX group called DMZ, which matches segments that have the dmz tag, and scope of zone, associated with them</li>
+<li>An NSX group called Internal, which matches segments that have the internal tag, and scope of zone, associated with them</li>
+<li>A firewall service object called couchdb, which is mapped to TCP 5984</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/544/original/52a48cd8-ec59-4c5d-a2c0-3d1b2fe37c9a.png" alt="" /></p>
+<p>Finally, we have a single firewall policy resource defined, which has number of rules defined within it. This is the macro segmentation firewall policy.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/250/medium/1c3ef2e4-ae61-4358-8d46-787ec9e74ac7.png" alt="" /></p>
+<ol>
+<li>Run <code>terraform init</code>  to install the required vmware/nsxt v3.1.0 terraform provider. We are now ready to apply our configuration.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/256/original/f94166bd-01a7-42e2-a7fb-176467d16e1e.png" alt="" /></p>
+<ol>
+<li>Run the command <strong>terraform apply</strong> to configure the edge firewall segmentation in NSX</li>
+</ol>
+<p>Terraform will show you the proposed changes before proceeding.  You can inspect them.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/075/981/medium/8021f6ff-da85-4f92-8312-cbecfd5bd75e.png" alt="" /></p>
+<ol>
+<li>Confirm that you want to apply the changes</li>
+</ol>
+<p>Terraform will apply the configuration and you can verify the result from the CLI output. A succesfull configuration will show: <strong>Apply complete! Resources: 4 added, 0 changed, 0 destroyed</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/549/original/7b35fa4a-8bd0-4c20-a459-8ae4a9c7f074.png" alt="" /></p>
+<ol>
+<li>Run the command: <strong>cat terraform.tfstate</strong></li>
+<li>When you apply the configuration terraform maintains state information of it's actions, and saves it in the tfstate file. Browse this file, and become familiar with it.</li>
+</ol>
+<p><strong>Note:</strong> You should never edit the tfstate files directly.</p>
+<h2 id="3-verify-edge-firewall-configuration-in-the-nsx-ui"><a class="header" href="#3-verify-edge-firewall-configuration-in-the-nsx-ui">3. Verify Edge Firewall Configuration in the NSX UI</a></h2>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/462/original/f2daa863-1f37-4ab8-9df0-468c791cf3a8.png" alt="" /></p>
+<ol>
+<li>In Chrome, navigate to the <strong>NSX Manager UI</strong> bokmark in the RegionA folder</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/452/original/71449ed2-6a2a-4a60-9146-16c4ecc58529.png" alt="" /></p>
+<ol>
+<li>Click LOG IN</li>
+</ol>
+<p>Credentials are cached. In case you need them, use admin/VMware1!VMware1!</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/454/medium/cd3f0e78-ade9-47ad-8def-9be4ff00765a.png" alt="" /></p>
+<ol>
+<li>Select the <strong>Security</strong> tab</li>
+<li>Click on <strong>Gateway Firewall</strong></li>
+<li>Select the <strong>T1-INTERNAL</strong> Gateway in the drop down menu</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/966/802/medium/9a8cf310-e6c8-4723-9fe8-0bde32ec5157.png" alt="" /></p>
+<ol>
+<li>Expand the Gateway Firewall Policy named <strong>Macro Segmentation for Internal Zone</strong> you created via Terraform.</li>
+</ol>
+<p>Note the direct access form the external network is not allowed, and access from the DMZ is only allowed on the couchdb service port (TCP 5984). Management IP ranges, including your windows jump host have full access to the Internal network.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/450/original/29290fcc-599e-4efa-a529-29b06c62a32e.png" alt="" /></p>
+<ol>
+<li>Clicking on a group (i.e. MGMT) you have access to information about how the group has been defined, and the effective group members.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/466/original/1d111ad6-f75f-41b4-b73b-2757e0e12fdf.png" alt="" /></p>
+<ol>
+<li>Select <strong>Effective Members</strong></li>
+<li>Select <strong>IP Addresses</strong>, you can see the two management IPs that have full access to the Internal Network</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/460/original/3f98ac4e-f507-4eea-98b3-61e148a0fc22.png" alt="" /></p>
+<ol>
+<li>Select <strong>Group Definition</strong></li>
+<li>Select <strong>IP Addresses</strong>, you can see that the group has been configured to explicitly include two IP addresses. Because those IPs represent systems outside of the NSX domain this was the only option available.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/464/original/e34014ec-0d29-47bc-a6dc-b6b173820009.png" alt="" /></p>
+<ol>
+<li>Select now the DMZ Group</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/472/medium/9df51699-cfec-435b-8567-15e8a291e6c0.png" alt="" /></p>
+<ol>
+<li>Select <strong>Group Definition</strong>. You can see that this group has been defined via a dynamic criteria to inclue any Virtual Machine residing on segments tagged with zone|dmz scope|value pair.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/470/original/ec15603c-b8ca-4120-869c-f2b79e78bbb7.png" alt="" /></p>
+<ol>
+<li>Select Effective Members</li>
+<li>Select Segments. You can see that the OV-DMZ segment is part of the group based on the tag that was applied to it as part of the lab pre-configuration.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/456/original/d4973eca-0aa4-4221-9d49-0e1753744bb4.png" alt="" /></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/275/original/8f33bdcd-e5e7-4875-bbc3-9f62807ac5ac.png" alt="" /></p>
+<p>The Segment Ports and IP Addresses tab have additional information about the effective members of the group.</p>
+<h2 id="4-increase-the-granularity-of-gateway-firewall-rules"><a class="header" href="#4-increase-the-granularity-of-gateway-firewall-rules">4. Increase the Granularity of Gateway Firewall Rules</a></h2>
+<p>The internal network hosts two databases. We want to give the DMZ access to the dev database only (172.16.60.11), and we want to avoid that systems exposed to the Internet can interact with the production database (172.16.60.12).</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/966/800/original/18b60ea4-af99-4ccf-9a87-f0cf263d0da2.png" alt="" /></p>
+<ol>
+<li>Hover over the Any in the Destination filed for the Allow DMZ rule, and click on the <strong>pencil button</strong> to edit</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/963/564/medium/171b6c88-cec7-4e10-99bf-2f4cd5399f00.png" alt="" /></p>
+<ol>
+<li>Select the IP Addresses tab</li>
+<li>Type <strong>172.16.60.11/32</strong> and hit <strong>enter</strong></li>
+<li>Click <strong>Apply</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/966/804/original/9a41181c-b8df-40d9-8bbb-6164040740fa.png" alt="" /></p>
+<ol>
+<li><strong>Publish</strong> the changes</li>
+</ol>
+<h2 id="a-hrefverify-segmentation-via-trace-flowa5-verify-segmentation-via-trace-flow"><a class="header" href="#a-hrefverify-segmentation-via-trace-flowa5-verify-segmentation-via-trace-flow"><a href="#verify-segmentation-via-trace-flow"></a>5. Verify Segmentation via Trace Flow</a></h2>
+<h3 id="a-hrefdmz-to-dev-dba51-dmz-to-dev-db"><a class="header" href="#a-hrefdmz-to-dev-dba51-dmz-to-dev-db"><a href="#dmz-to-dev-db"></a>5.1. DMZ to DEV DB</a></h3>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/964/086/original/126a4331-b7d1-4d58-b334-813f5e62c8b2.png" alt="" /></p>
+<ol>
+<li>Select the <strong>Plan and Troubleshoot</strong> tab</li>
+<li>Click on <strong>Traceflow</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/964/094/medium/8a74e978-4523-4f07-9474-81872941ecdc.png" alt="" /></p>
+<ol>
+<li>Select <strong>TCP</strong> as the Protocol Type</li>
+<li>Set a random source port such as <strong>10000</strong></li>
+<li>Set the destination port to <strong>5984</strong> (couchdb service port)</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/152/423/medium/7d795222-b22b-472e-949f-18df60a45c6f.png" alt="" /></p>
+<ol>
+<li>Select <strong>drupal-dev</strong> as the source VM</li>
+<li>Select <strong>couchdb-dev</strong> as the destination VM</li>
+<li>Click <strong>TRACE</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/152/425/medium/edc2c781-9f93-4acb-a106-c96a6c6d0ebd.png" alt="" /></p>
+<ol>
+<li>Note the topology map describing the path the synthetic packet has taken from the VM in the DMZ to the VM on the INternal network</li>
+<li>Note that the packet has been delivered, it means our gateway firewall rules allowed the traffic as we expected</li>
+</ol>
+<p>Optionally you can inspect the path taken by the packet as observed at every observation point.</p>
+<h3 id="a-hrefdmz-to-prod-dba52-dmz-to-prod-db"><a class="header" href="#a-hrefdmz-to-prod-dba52-dmz-to-prod-db"><a href="#dmz-to-prod-db"></a>5.2. DMZ to PROD DB</a></h3>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/964/092/medium/0d72a8f2-b4da-48be-85fe-d733bdf14082.png" alt="" /></p>
+<ol>
+<li>Click <strong>EDIT</strong></li>
+<li>Click <strong>PROCEED</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/003/964/098/original/5ed3810a-f716-4497-bdc1-8b702b5587cb.png" alt="" /></p>
+<ol>
+<li>Change the destination VM to <strong>couchdb-prd</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/152/427/medium/969bf432-b512-42c9-82e7-db40d9d8ace0.png" alt="" /></p>
+<ol>
+<li>Click <strong>TRACE</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/277/original/7f0f9e12-4c3e-47a3-8f4c-a62228f8964f.png" alt="" /></p>
+<ol>
+<li>Note that the packet is <strong>dropped</strong> in this case</li>
+<li>Trace Flow provide information about the firewall rule dropping the traffic</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/125/279/medium/b43e82c0-6db6-4dce-9994-57ad868633c8.png" alt="" /></p>
+<p>To see the rule with that specific ID ( in my case 5099):</p>
+<ol>
+<li>Select the <strong>Security</strong> tab</li>
+<li>Select <strong>Edge Firewall</strong></li>
+<li>Select the <strong>T1-INTERNAL</strong> Logical Router</li>
+<li>The ID will match the deny any any rule of the <strong>Macro Segmentation for Internal Zone</strong> Policy</li>
+</ol>
 
                     </main>
 
@@ -204,21 +382,6 @@
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

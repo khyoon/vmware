@@ -165,7 +165,185 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="setup-nsx-t-cloud"><a class="header" href="#setup-nsx-t-cloud">Setup NSX-T Cloud</a></h1>
+                        <h1 id="33-setup-nsx-t-cloud"><a class="header" href="#33-setup-nsx-t-cloud">3.3 Setup NSX-T Cloud</a></h1>
+<p>Now that we have configured all the prerequisites, it is the time to create our NSX-T Cloud.</p>
+<h2 id="1-create-nsx-t-cloud"><a class="header" href="#1-create-nsx-t-cloud">1. Create NSX-T Cloud</a></h2>
+<p>Open the management UI of the NSX Advanced Load Balancer</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/282/128/medium/f1a9c5a2-2ffb-4d1d-9e71-ce61a053a085.png" alt="" /></p>
+<ol>
+<li>Select <strong>Infrastructure</strong> from the system menu in the top left corner.</li>
+<li>Click <strong>Clouds</strong></li>
+<li>Click <strong>Create</strong> and choose <strong>NSX-T Cloud</strong> from the menu</li>
+</ol>
+<blockquote>
+<p>The Cloud setup is a multi-step process. Please do not rush through the next steps and read the instructions carefully.</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/282/134/original/babff791-9fde-47dc-b430-8a5d62ebd4eb.png" alt="" /></p>
+<p>Please enter the following information:</p>
+<ol>
+<li>Name: <strong>nsxmgr-01a</strong></li>
+<li>Object Name Prefix: <strong>ALB</strong></li>
+</ol>
+<p>In the NSX-T section:</p>
+<ol>
+<li>Enter the NSX-T Manager Address: <strong>nsxmgr-01a.corp.local</strong></li>
+<li>Select the NSX-T Manager credentials we created in the step before: <strong>NSX Admin</strong></li>
+<li>Click <strong>CONNECT</strong></li>
+</ol>
+<blockquote>
+<p><strong>Object Name Prefix:</strong> This prefix helps us to identify the objects - like groups, routes, etc. - that will be created in NSX-T.</p>
+<p>We will take a look at this in a later step!</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/088/937/original/57ac0b32-8b45-4f74-8336-fce22f3dcf54.png" alt="" /></p>
+<p>After a successful connection the NSX-T section should look like the one shown above.</p>
+<p>Please scroll down to the Transport configuration section.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/282/136/original/33bd235c-6517-4fc5-a362-9d900c9553f3.png" alt="" /></p>
+<ol>
+<li>Select the overlay TZ: <strong>nsx-overlay-transportzone</strong></li>
+<li>For the Management Network Segment:<br />
+Tier1 Logical Router ID: <strong>T1-GATEWAY</strong>Segment ID: <strong>OV-LBMGMT</strong></li>
+<li>Next add the Data Network Segment(s). Click <strong>ADD</strong></li>
+<li>Select from the drop-down:<br />
+Logical Router ID: <strong>T1-GATEWAY</strong>Segment: <strong>OV-WEB</strong></li>
+<li>Next we have to add the vCenter Sever. Click <strong>ADD</strong> in the vCenter Server section. 
+A pop-up windows will appear:</li>
+</ol>
+<h3 id="11-add-vcenter-server"><a class="header" href="#11-add-vcenter-server">1.1. Add vCenter Server</a></h3>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/282/138/original/ca99dec4-d8d1-46e2-9b95-08a9803bd41b.png" alt="" /></p>
+<p>Enter the following information:</p>
+<ol>
+<li>Name: <strong>vcsa-01a</strong></li>
+<li>From the drop-down select the vCenter Address: <strong>192.168.110.22</strong></li>
+<li>Select <strong>VC Admin</strong> from the credentials list.</li>
+<li>Click <strong>CONNECT</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/282/140/original/c3a24fab-9260-4538-b001-0cd5636c4d4f.png" alt="" /></p>
+<ol>
+<li>After a successful login you can select the Content Library. Choose the one we created in the previous task.</li>
+<li>Click <strong>DONE</strong></li>
+</ol>
+<p>This will close the Add vCenter Server dialogue and will bring you back to the NSX-T Cloud setup:</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/282/142/original/b592fc72-fa49-49f7-881e-38d3da2b8c2f.png" alt="" /></p>
+<p>Please verify your setup.</p>
+<p>Click <strong>SAVE</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/282/144/medium/3c32d831-4ed4-4c8a-a919-ad9c586c0415.png" alt="" /></p>
+<p>The new configured cloud shows up now in the list.</p>
+<p>It might take a while to see the green signal in the row of the NSX-T Cloud.</p>
+<h2 id="2-nsx-t-cloud-customization"><a class="header" href="#2-nsx-t-cloud-customization">2. NSX-T Cloud Customization</a></h2>
+<p>We have created our NSX-T Cloud and the ALB controller has imported inventory information from vCenter and NSX-T Manager.</p>
+<p>Next we want to fine-tune some parameters.</p>
+<h3 id="21-service-engine-groups"><a class="header" href="#21-service-engine-groups">2.1. Service Engine Groups</a></h3>
+<p>In NSX Advanced Load Balancer SE are not managed as a single entity. They are managed as a group - so let us take a look on the settings and parameters we can find in a SE Group.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/483/medium/2d52083e-132d-4467-a047-6159f6f3fb1b.png" alt="" /></p>
+<ol>
+<li>Make sure you are still in the <strong>Infrastructure</strong> configuration scope.</li>
+<li>Click <strong>Service Engine</strong></li>
+<li>Select the newly created NSX-T cloud: <strong>nsxmgr-01a</strong></li>
+</ol>
+<p>This view will list later all the SEs that belong to the selected cloud. Although we have created the NSX-T Cloud, there are no SE deployed yet. This will happen when we create the first virtual service.</p>
+<p>But lets move on to the Service Engine Group</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/485/medium/3c322e1e-d30b-4166-aa04-ab9287f4836f.png" alt="" /></p>
+<ol>
+<li>Click <strong>Service Engine Group</strong> in top menu bar.</li>
+<li>Select the NSX-T cloud: <strong>nsxmgr-01a</strong></li>
+<li>A <strong>Default-Group</strong> that can be tweaked to our needs has been created during the cloud setup process.</li>
+<li>Click the pencil icon on the right to edit the group.</li>
+</ol>
+<h4 id="211-basic-settings"><a class="header" href="#211-basic-settings">2.1.1. Basic Settings</a></h4>
+<blockquote>
+<p>Available settings and parameters within a SE Group depend heavily on the type of Cloud it belongs to. So you will find different settings when you are working with a vCenter or NSX-T cloud compared to a AWS or other public cloud offerings.</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/487/medium/c33851e8-b91b-414a-9b79-b74583dfc5af.png" alt="" /></p>
+<p>On the upper half of the Basic Settings screen we can find:</p>
+<ol>
+<li>The parameters that define the <strong>High Availability Mode</strong>.<br />
+Note: Changing the HA Mode will also change the <strong>VS Placement across SEs</strong> options on the right. 
+For out training we will use the default values.</li>
+<li>We can use the resource parameters to change the size of the SEs virtual machines that will be deployed in our environment.</li>
+<li>For our lab environment we will disable <strong>Memory Reserve</strong>. 
+Please leave this checkbox enabled for production environments or PoCs.</li>
+</ol>
+<blockquote>
+<p>Please feel free to explore the other parameters on this page. Just place your mouse over the question mark to the parameters to get a short help.</p>
+<p>To learn more about SE Group settings, check out:<br />
+<a href="https://avinetworks.com/docs/20.1/service-engine-group/">https://avinetworks.com/docs/20.1/service-engine-group/</a></p>
+</blockquote>
+<h4 id="212-advanced-settings"><a class="header" href="#212-advanced-settings">2.1.2. Advanced Settings</a></h4>
+<p>Next lets switch tot the Advanced tab.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/489/medium/a96ca8c8-4a18-4d6e-8167-9e3981afa67f.png" alt="" /></p>
+<ol>
+<li>Please click the <strong>Advanced</strong> tab on the top of the screen.</li>
+<li>Change the Service Engine Name Prefix to <strong>DefaultGroup</strong></li>
+<li>The section <strong>Advanced HA &amp; Placement</strong> allows us to fine-tune the HA modes configured on the Basic Settings screen. 
+In our case we will use the default values: We will have 1 Buffer SE and the minimum scale per VS will be 1.</li>
+<li>The <strong>Placement Scope</strong> enables administrators to fine-tune SE placement for the environment. 
+If you want to discover this feature check out the following Information Only section.</li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<h4 id="2121-information-only-placement-scope"><a class="header" href="#2121-information-only-placement-scope">2.1.2.1. Information Only: Placement Scope</a></h4>
+<blockquote>
+<p>The intention of this section is to demonstrate the SE placement options for an SE group in an NSX-T Cloud.</p>
+<p>It is a good idea to save the settings you made and re-open the configuration dialogue to play around with it.</p>
+</blockquote>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/491/medium/a88d6bc4-ebd8-4bb4-b12d-4fca3bd6cdc5.png" alt="" /></p>
+<p>First click <strong>Add vCenter</strong></p>
+<p>Remember: An NSX-T manager can be connected to several vCenter Servers. In this section you can configure where the SEs are actually created.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/493/medium/e62c90e2-3b63-482a-bd01-592f325beb0d.png" alt="" /></p>
+<ol>
+<li>We have only one <strong>vCenter Server</strong>. Please select it from the drop-down menu.</li>
+<li>You can select an existing VM Folder to store your SEs to. If you do not select an existing one, a new folder <strong>AviSeFolder</strong> will be created.</li>
+<li>The  <strong>Host Scope</strong> allows you to explicitly include or exclude specific hosts for SE placement.</li>
+<li>Similar to the Host Scope the same can be done for <strong>Data Stores</strong> as well.</li>
+<li>When your done with the examination of the Placement Scope, please click the <strong>Recycle Bin</strong> icon on the right to delete any settings.</li>
+</ol>
+<p>This concludes this short Information Only section.</p>
+<h3 id="22-networks"><a class="header" href="#22-networks">2.2. Networks</a></h3>
+<p>Next we have to setup the Networks for SE management and the service VIPs.</p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/504/medium/9199f27a-d8e2-4f0e-a25c-44379413f7ad.png" alt="" /></p>
+<ol>
+<li>Select <strong>Infrastructure</strong> from the system menu in the top left corner.</li>
+<li>Click <strong>Networks</strong></li>
+<li>Select the NSX-T Cloud: <strong>nsxmgr-01a</strong></li>
+<li>We can see that the two overlay networks we defined during cloud setup are listed in the table.</li>
+<li>Please click the pencil icon on the right for the <strong>OV-LBMGT</strong> network to open the configuration dialogue.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/135/745/medium/8c9e3c2e-62e7-409a-82af-90ee7b7c62eb.png" alt="" /></p>
+<p>This logical segment will be used for SE management.</p>
+<p>Click <strong>Add Subnet</strong></p>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/506/medium/8f505e3e-ab0e-4224-95d5-f827a6ee9f53.png" alt="" /></p>
+<ol>
+<li>Enter the <strong>IP Subnet</strong>: 172.16.100.0/24</li>
+<li>Click <strong>Add Static IP Address Pool</strong> and then</li>
+<li>enter the range: <strong>172.16.100.100-172.16.100.120</strong></li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/508/medium/10a0bd40-0cc3-48d8-952e-f1a131376834.png" alt="" /></p>
+<ol>
+<li>The configured range shows up in the <strong>Network IP Subnets</strong> section.</li>
+<li>Click <strong>Save</strong> twice</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/510/medium/7cd36693-b9d6-43ca-aeec-6de7e57a7233.png" alt="" /></p>
+<ol>
+<li>Network configuration details can be easily viewed by using the <strong>+/-</strong> icons on the right.</li>
+<li>Next we have add subnet information to the <strong>OV-WEB</strong> network as well. Please click the pencil icon.</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/512/medium/21c33d7c-2cb8-42b2-8019-cf28acdc6b7b.png" alt="" /></p>
+<ol>
+<li>Enter the <strong>IP Subnet</strong>: 172.16.10.0/24</li>
+<li>Click <strong>Add Static IP Address Pool</strong> and then</li>
+<li>enter the range: <strong>172.16.10.100-172.16.10.120</strong></li>
+<li>Click <strong>Save</strong></li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/514/medium/cb4685fd-8c70-4f6e-b6dc-0501568a18db.png" alt="" /></p>
+<ol>
+<li>The configured range shows up in the <strong>Network IP Subnets</strong> section.</li>
+<li>Click <strong>Save</strong> twice</li>
+</ol>
+<p><img src="https://media.screensteps.com/image_assets/assets/004/284/516/medium/64837233-3db5-436c-80d7-6443056ed6d3.png" alt="" /></p>
+<p>Networks configured!</p>
+<blockquote>
+<p>Now we are ready to deploy the first Virtual Service!</p>
+</blockquote>
 
                     </main>
 
@@ -204,21 +382,6 @@
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         
